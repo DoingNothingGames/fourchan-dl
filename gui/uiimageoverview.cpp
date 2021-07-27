@@ -242,7 +242,7 @@ void UIImageOverview::createThumbnail(QString s) {
     QString thumbnail_location;
     if (!_threadBlocked) {
         thumbnail_location = tnt->addToList(s);
-        QLOG_TRACE() << __PRETTY_FUNCTION__ << ":: Adding thumbnail for" << s;
+        QLOG_TRACE() << __func__ << ":: Adding thumbnail for" << s;
         pendingThumbnails.append(s);
 
         missingThumbs.insert(s, thumbnail_location);
@@ -256,7 +256,7 @@ void UIImageOverview::createThumbnail(QString s) {
 void UIImageOverview::addThumbnail(QString filename, QString tnFilename) {
     QListWidgetItem* item;
 
-    QLOG_TRACE() << __PRETTY_FUNCTION__ << "::" << filename << "," << tnFilename;
+    QLOG_TRACE() << __func__ << "::" << filename << "," << tnFilename;
     if (tnFilename != "") {
 //        if (pendingThumbnails.contains(filename)) {
 //            pendingThumbnails.removeAll(filename);
@@ -286,7 +286,7 @@ void UIImageOverview::addThumbnails(QString thumbnails) {
     QStringList image_filenames;
     image_filenames = thumbnails.split(";;;");
 
-    QLOG_TRACE() << __PRETTY_FUNCTION__ << ":: Map size " << image_filenames.count();
+    QLOG_TRACE() << __func__ << ":: Map size " << image_filenames.count();
     for (int i=0; i<image_filenames.count(); i++) {
         if (pendingThumbnails.contains(image_filenames.at(i).split(":::").at(0))) {
             addThumbnail(image_filenames.at(i).split(":::").at(0),
@@ -299,12 +299,12 @@ void UIImageOverview::checkForMissingThumbnails() {
     QMap<QString,QString>::iterator i;
     QList<QString> found_thumbs;
 
-    QLOG_TRACE() << __PRETTY_FUNCTION__ << ":: Checking for thumbnails";
+    QLOG_TRACE() << __func__ << ":: Checking for thumbnails";
 
     for (i=missingThumbs.begin(); i!=missingThumbs.end(); i++) {
-        QLOG_TRACE() << __PRETTY_FUNCTION__ << ":: Checking for thumbnail" << i.value();
+        QLOG_TRACE() << __func__ << ":: Checking for thumbnail" << i.value();
         if (QFile::exists(i.value())) {
-            QLOG_TRACE() << __PRETTY_FUNCTION__ << ":: " << i.value() << "found";
+            QLOG_TRACE() << __func__ << ":: " << i.value() << "found";
             addThumbnail(i.key(), i.value());
             found_thumbs << i.key();
         }
@@ -542,7 +542,7 @@ void UIImageOverview::setValues(QString s) {
 }
 
 void UIImageOverview::debugButton(void) {
-    QLOG_ALWAYS() << __PRETTY_FUNCTION__ << ":: " << QString("%1/%2").arg(getDownloadedImagesCount()).arg(getTotalImagesCount());
+    QLOG_ALWAYS() << __func__ << ":: " << QString("%1/%2").arg(getDownloadedImagesCount()).arg(getTotalImagesCount());
 }
 
 void UIImageOverview::closeEvent(QCloseEvent *event)
@@ -732,9 +732,9 @@ void UIImageOverview::stopDownload(void) {
 void UIImageOverview::createSupervisedDownload(QUrl url) {
     if (url.isValid()) {
         if (!isImage(url)) {
-            QLOG_DEBUG() << __PRETTY_FUNCTION__ << "Passing url to plugin " << url.toString();
+            QLOG_DEBUG() << __func__ << "Passing url to plugin " << url.toString();
             url = iParser->alterUrl(url);
-            QLOG_DEBUG() << __PRETTY_FUNCTION__ << "URL altered to " << url.toString();
+            QLOG_DEBUG() << __func__ << "URL altered to " << url.toString();
         }
         requestHandler->request(url);
     }
@@ -902,14 +902,14 @@ void UIImageOverview::processRequestResponse(QUrl url, QByteArray ba, bool cache
                 else if (status.threadFragmented && follow_redirects) {
                     follow_redirects = false;
                     threadList = iParser->getUrlList();
-                    QLOG_INFO() << __PRETTY_FUNCTION__ << ":: redirect list " << threadList;
+                    QLOG_INFO() << __func__ << ":: redirect list " << threadList;
                     foreach (QUrl u, threadList) {
                         createSupervisedDownload(u);
                     }
                 }
                 else if (status.hasRedirect && follow_redirects) {
                     ui->leURI->setText(iParser->getRedirectURL().toString());
-                    QLOG_INFO() << __PRETTY_FUNCTION__ << ":: redirecting to " << iParser->getRedirectURL().toString();
+                    QLOG_INFO() << __func__ << ":: redirecting to " << iParser->getRedirectURL().toString();
                     stop();
                     start();
                 }
@@ -1123,7 +1123,7 @@ bool UIImageOverview::addImage(_IMAGE img) {
                 img.downloaded = true;
                 fileExists = true;
 
-                QLOG_INFO() << __PRETTY_FUNCTION__ << ":: Image " << img.largeURI << " from cached result does not exists. Looked in " << getSavepath();
+                QLOG_INFO() << __func__ << ":: Image " << img.largeURI << " from cached result does not exists. Looked in " << getSavepath();
             }
 
             images.append(img);
@@ -1301,7 +1301,7 @@ bool UIImageOverview::hasNewImages() {
 
     ret = false;
 
-    QLOG_DEBUG() << __PRETTY_FUNCTION__ << "tnCountLast: " << thumbnailCountLastViewed << "; tnCount: " << thumbnailCount;
+    QLOG_DEBUG() << __func__ << "tnCountLast: " << thumbnailCountLastViewed << "; tnCount: " << thumbnailCount;
     if (thumbnailCountLastViewed < thumbnailCount) {
         ret = true;
     }

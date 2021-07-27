@@ -1,5 +1,7 @@
 #include "applicationinterface.h"
 
+#define PROGRAM_VERSION "Cracked"
+
 ApplicationInterface::ApplicationInterface(QObject *parent) :
     QObject(parent)
 {

@@ -12,6 +12,14 @@
 extern DownloadManager* downloadManager;
 extern PluginManager* pluginManager;
 
+#ifndef PROGRAM_VERSION
+#define PROGRAM_VERSION "Cracked"
+#endif
+
+#ifndef BUILDDATE
+#define BUILDDATE "19.99.9999"
+#endif
+
 namespace Ui {
     class UIInfo;
 }

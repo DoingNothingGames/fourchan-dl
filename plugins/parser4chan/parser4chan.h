@@ -8,6 +8,8 @@
 #include "../../gui/ParserPluginInterface.h"
 #include "../../gui/structs.h"
 
+#define _LIB_VERSION "Cracked"
+
 class Parser4chan : public QObject, public ParserPluginInterface {
     Q_OBJECT
     Q_INTERFACES(ParserPluginInterface)

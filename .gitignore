@@ -1,0 +1,12 @@
+/.vs/
+/*/x64/Debug/*
+/*/x64/Release/*/
+/*/*/x64/Debug/*
+/*/x64/Release/*
+*.pro.user
+/*/*/x64/Release/*
+/x64/Debug/
+*.vcxproj.filters
+*.vcxproj.user
+*.log
+/workarea/*

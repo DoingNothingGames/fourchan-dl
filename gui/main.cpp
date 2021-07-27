@@ -41,15 +41,15 @@ int main(int argc, char *argv[])
     QSettings settings("settings.ini", QSettings::IniFormat);
     int logLevel;
 
-#if QT_VERSION >= 0x050000
-#ifdef Q_OS_WIN
-    a.setStyle("windowsvista");
-#else
-    a.setStyle("fusion");
-#endif
-#else
-    a.setStyle("plastique");
-#endif
+//#if QT_VERSION >= 0x050000
+//#ifdef Q_OS_WIN
+//    a.setStyle("windowsvista");
+//#else
+//    a.setStyle("fusion");
+//#endif
+//#else
+//    a.setStyle("plastique");
+//#endif
 
     // init the logging mechanism
     QsLogging::Logger& logger = QsLogging::Logger::instance();

@@ -78,15 +78,15 @@ void ThumbnailCreator::go() {
                 }
                 else {
                     if (QFile::exists(currentFilename)) {
-                        QLOG_DEBUG() << __PRETTY_FUNCTION__ << ":: Image" << currentFilename << "cannot be processed. Using default thumbnail instead.";
+                        QLOG_DEBUG() << __func__ << ":: Image" << currentFilename << "cannot be processed. Using default thumbnail instead.";
                         if (original.load(":/icons/resources/image-missing.png")) {
                             image_loaded = true;
 
-                            QLOG_TRACE() << __PRETTY_FUNCTION__ << ":: Loaded default image";
+                            QLOG_TRACE() << __func__ << ":: Loaded default image";
                         }
                     }
                     else {
-                        QLOG_ERROR() << __PRETTY_FUNCTION__ << ":: Image" << currentFilename << " does not exist. Thumbnail not created.";
+                        QLOG_ERROR() << __func__ << ":: Image" << currentFilename << " does not exist. Thumbnail not created.";
                         image_loaded = false;
                     }
                 }
@@ -192,7 +192,7 @@ void ThumbnailCreator::resume() {
 void ThumbnailCreator::thumbnailAvailable(QString image_filename, QString cache_filename) {
 //    mutex.lock();
     rendered_thumbnails.append(QString("%1:::%2").arg(image_filename, cache_filename));
-    QLOG_TRACE() << __PRETTY_FUNCTION__ << ":: adding to list: " << rendered_thumbnails;
+    QLOG_TRACE() << __func__ << ":: adding to list: " << rendered_thumbnails;
     thumbnails_created = true;
 
     if (!event_emit_timer->isActive()) {
@@ -203,11 +203,11 @@ void ThumbnailCreator::thumbnailAvailable(QString image_filename, QString cache_
 */
 void ThumbnailCreator::eventEmitTimerTriggered() {
     mutex.lock();
-    QLOG_TRACE() << __PRETTY_FUNCTION__ << ":: triggered";
+    QLOG_TRACE() << __func__ << ":: triggered";
     if (thumbnails_created) {
         thumbnails_created=false;
-        QLOG_TRACE() << __PRETTY_FUNCTION__ << "emitting signal";
-        QLOG_ALWAYS() << __PRETTY_FUNCTION__ << ":: Thumbnails ready: " << rendered_thumbnails;
+        QLOG_TRACE() << __func__ << "emitting signal";
+        QLOG_ALWAYS() << __func__ << ":: Thumbnails ready: " << rendered_thumbnails;
 //        emit thumbnailsAvailable(rendered_thumbnails.join(";;;"));
         rendered_thumbnails.clear();
     }

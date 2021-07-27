@@ -1,5 +1,7 @@
 ﻿#include "uiinfo.h"
 #include "ui_uiinfo.h"
+
+
 UIInfo::UIInfo(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::UIInfo)
