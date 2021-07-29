@@ -8,8 +8,6 @@
 #include <QFileDialog>
 #include "foldershortcuts.h"
 
-extern FolderShortcuts* folderShortcuts;
-
 namespace Ui {
     class DialogFolderShortcut;
 }
@@ -19,13 +17,14 @@ class DialogFolderShortcut : public QDialog
     Q_OBJECT
 
 public:
-    explicit DialogFolderShortcut(QWidget *parent = 0);
+    explicit DialogFolderShortcut(std::shared_ptr<FolderShortcuts> shortcuts, QWidget *parent = nullptr);
     ~DialogFolderShortcut();
     void edit(QString);
 
 private:
     Ui::DialogFolderShortcut *ui;
     QString _originalShortcutName;
+    std::shared_ptr<FolderShortcuts> folderShortcuts;
 
 public slots:
     void clear();

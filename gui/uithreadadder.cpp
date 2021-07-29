@@ -1,9 +1,12 @@
 ﻿#include "uithreadadder.h"
 #include "ui_uithreadadder.h"
 
-UIThreadAdder::UIThreadAdder(QWidget *parent) :
+UIThreadAdder::UIThreadAdder(
+  std::shared_ptr<FolderShortcuts> folderShortcuts_, 
+  QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::UIThreadAdder)
+    ui(new Ui::UIThreadAdder),
+    folderShortcuts(folderShortcuts_)
 {
     ui->setupUi(this);
     clipboard = QApplication::clipboard();
@@ -11,7 +14,7 @@ UIThreadAdder::UIThreadAdder(QWidget *parent) :
 
 //    connect(clipboard, SIGNAL(changed(QClipboard::Mode))), this, SLOT(checkClipboard(QClipboard::Mode));
     connect(clipboard, SIGNAL(dataChanged()), this, SLOT(checkClipboard()));
-    connect(folderShortcuts, SIGNAL(shortcutsChanged()), this, SLOT(fillShortcutComboBox()));
+    connect(folderShortcuts.get(), SIGNAL(shortcutsChanged()), this, SLOT(fillShortcutComboBox()));
     connect(ui->cbFolderShortcuts, SIGNAL(currentIndexChanged(QString)), this, SLOT(selectShortcut(QString)));
 
     loadSettings();

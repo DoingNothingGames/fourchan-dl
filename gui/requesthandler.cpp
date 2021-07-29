@@ -1,7 +1,9 @@
+#include "downloadmanager.h"
 #include "requesthandler.h"
 
-RequestHandler::RequestHandler(QObject *parent) :
-    QObject(parent)
+RequestHandler::RequestHandler(std::shared_ptr<DownloadManager> downloadManager_, QObject *parent) :
+    QObject(parent),
+    downloadManager(downloadManager_)
 {
     if (downloadManager == 0) {
         qErrnoWarning("The download manager was not started. Exiting.");

@@ -9,8 +9,6 @@
 #include "foldershortcuts.h"
 #include "QsLog.h"
 
-extern FolderShortcuts* folderShortcuts;
-
 namespace Ui {
     class UIConfig;
 }
@@ -20,7 +18,7 @@ class UIConfig : public QDialog
     Q_OBJECT
 
 public:
-    explicit UIConfig(QWidget *parent = 0);
+    explicit UIConfig(std::shared_ptr<FolderShortcuts> folderShortcuts_, QWidget *parent = 0);
     ~UIConfig();
 
 private:
@@ -30,6 +28,7 @@ private:
     DialogFolderShortcut* dialogFolderShortcut;
     bool _removing_thumbnails;
     QMap<QString,QString> userAgentStrings;
+    std::shared_ptr<FolderShortcuts> folderShortcuts;
 
 public slots:
     void thumbnailDeletionFinished();

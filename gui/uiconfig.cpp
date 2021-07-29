@@ -1,9 +1,10 @@
 ﻿#include "uiconfig.h"
 #include "ui_uiconfig.h"
 
-UIConfig::UIConfig(QWidget *parent) :
+UIConfig::UIConfig(std::shared_ptr<FolderShortcuts> folderShortcuts_, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::UIConfig)
+    ui(new Ui::UIConfig),
+    folderShortcuts(folderShortcuts_)
 {
     ui->setupUi(this);
 
@@ -13,7 +14,7 @@ UIConfig::UIConfig(QWidget *parent) :
     timeoutValueEditor = new UIListEditor(this);
     timeoutValueEditor->setModal(true);
 
-    dialogFolderShortcut = new DialogFolderShortcut(this);
+    dialogFolderShortcut = new DialogFolderShortcut(folderShortcuts, this);
     dialogFolderShortcut->setModal(true);
 
     userAgentStrings.insert("Wget", "Wget/1.12");
@@ -27,8 +28,8 @@ UIConfig::UIConfig(QWidget *parent) :
     connect(timeoutValueEditor, SIGNAL(valuesChanged()), this, SLOT(loadSettings()));
     connect(ui->cbUseProxy, SIGNAL(toggled(bool)), this, SLOT(toggleProxy(bool)));
     connect(ui->listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(editShortcutItem(QListWidgetItem*)));
-    connect(folderShortcuts, SIGNAL(shortcutsChanged()), this, SLOT(loadShortcuts()));
-    connect(dialogFolderShortcut, SIGNAL(shortcutChanged(QString,QString,QString)), folderShortcuts, SLOT(updateShortcut(QString,QString,QString)));
+    connect(folderShortcuts.get(), SIGNAL(shortcutsChanged()), this, SLOT(loadShortcuts()));
+    connect(dialogFolderShortcut, SIGNAL(shortcutChanged(QString,QString,QString)), folderShortcuts.get(), SLOT(updateShortcut(QString,QString,QString)));
     connect(dialogFolderShortcut, SIGNAL(editCanceled()), this, SLOT(loadShortcuts()));
     connect(ui->btnDeleteAllThumbnails, SIGNAL(clicked()), this, SIGNAL(deleteAllThumbnails()));
     connect(ui->btnDeleteAllThumbnails, SIGNAL(clicked()), this, SLOT(thumbnailDeletionStarted()));

@@ -1,13 +1,14 @@
 #include "dialogfoldershortcut.h"
 #include "ui_dialogfoldershortcut.h"
 
-DialogFolderShortcut::DialogFolderShortcut(QWidget *parent) :
+DialogFolderShortcut::DialogFolderShortcut(std::shared_ptr<FolderShortcuts> shortcuts, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::DialogFolderShortcut)
+    ui(new Ui::DialogFolderShortcut),
+    folderShortcuts(std::move(shortcuts))
 {
     ui->setupUi(this);
 
-    connect(folderShortcuts, SIGNAL(shortcutsChanged()), this, SLOT(fillShortcutComboBox()));
+    connect(folderShortcuts.get(), SIGNAL(shortcutsChanged()), this, SLOT(fillShortcutComboBox()));
     connect(ui->cbFolderShortcuts, SIGNAL(currentIndexChanged(QString)), this, SLOT(selectShortcut(QString)));
     fillShortcutComboBox();
 }

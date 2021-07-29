@@ -25,12 +25,6 @@
 class ThumbnailCreator;
 class MainWindow;
 
-extern ThumbnailCreator* tnt;
-extern FolderShortcuts* folderShortcuts;
-extern MainWindow* mainWindow;
-extern PluginManager* pluginManager;
-extern UIImageViewer* imageViewer;
-
 namespace Ui {
     class UIImageOverview;
 }
@@ -40,7 +34,13 @@ class UIImageOverview : public QWidget
     Q_OBJECT
 
 public:
-    explicit UIImageOverview(QWidget *parent = 0);
+    explicit UIImageOverview(
+      std::shared_ptr<DownloadManager> downloadManager_,
+      std::shared_ptr<PluginManager> pluginManager_,
+      std::shared_ptr<FolderShortcuts> folderShortcuts_,
+      std::shared_ptr<ThumbnailCreator> thumbnailCreator_,
+      QWidget *parent = nullptr);
+
     ~UIImageOverview();
     QString getURI();
     QString getTitle();
@@ -90,6 +90,11 @@ private:
     bool fresh_thread;
     bool follow_redirects;
     int thumbnailCountLastViewed;
+
+    std::shared_ptr<DownloadManager> downloadManager;
+    std::shared_ptr<PluginManager> pluginManager;
+    std::shared_ptr<FolderShortcuts> folderShortcuts;
+    std::shared_ptr<ThumbnailCreator> thumbnailCreator;
 
     void loadSettings(void);
     void setStatus(QString s);
@@ -157,6 +162,9 @@ signals:
     void createTabRequest(QString);
     void removeFiles(QStringList);
     void changed();
+    void openedFileFromImageList(QString, QStringList);
+    void openedImageFromImageList(int, QStringList);
+
 protected:
     void closeEvent(QCloseEvent *);
 };

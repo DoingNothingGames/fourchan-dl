@@ -21,9 +21,7 @@
 #include "QsLog.h"
 
 class UIImageOverview;
-
-extern DownloadManager* downloadManager;
-extern QString updaterFileName;
+class ThumbnailCreator;
 
 namespace Ui {
     class MainWindow;
@@ -34,7 +32,12 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(std::shared_ptr<DownloadManager> downloadManager_, 
+      std::shared_ptr<ThumbnailCreator> thumbnailCreator_, 
+      std::shared_ptr<PluginManager> pluginManager_,
+      std::shared_ptr<FolderShortcuts> folderShortcuts_,
+      QString updaterFileName_,
+      QWidget *parent = 0);
     ~MainWindow();
     void restoreTabs();
     bool threadExists(QString url);
@@ -67,6 +70,11 @@ private:
     bool checkUpdaterVersion;
     EcWin7 win7;
     bool _paused;
+    std::shared_ptr<DownloadManager> downloadManager;
+    std::shared_ptr<ThumbnailCreator> thumbnailCreator;
+    std::shared_ptr<PluginManager> pluginManager;
+    std::shared_ptr<FolderShortcuts> folderShortcuts;
+    QString updaterFileName;
 
     void restoreWindowSettings(void);
     void updateWidgetSettings(void);
@@ -143,6 +151,7 @@ private slots:
 signals:
     void removeFiles(QStringList);
     void quitAll();
+    void settingsSaved();
 };
 
 #endif // MAINWINDOW_H

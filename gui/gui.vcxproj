@@ -98,6 +98,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\updater\commands.cpp" />
+    <ClCompile Include="application.cpp" />
     <ClCompile Include="applicationupdateinterface.cpp" />
     <ClCompile Include="blacklist.cpp" />
     <ClCompile Include="dialogfoldershortcut.cpp" />
@@ -133,6 +134,7 @@
   <ItemGroup>
     <ClInclude Include="..\updater\commands.h" />
     <QtMoc Include="applicationupdateinterface.h" />
+    <QtMoc Include="application.h" />
     <ClInclude Include="defines.h" />
     <ClInclude Include="ecwin7.h" />
     <ClInclude Include="HtmlEntities.h" />

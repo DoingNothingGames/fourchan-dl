@@ -9,9 +9,6 @@
 #include "pluginmanager.h"
 #include "uipendingrequests.h"
 
-extern DownloadManager* downloadManager;
-extern PluginManager* pluginManager;
-
 #ifndef PROGRAM_VERSION
 #define PROGRAM_VERSION "Cracked"
 #endif
@@ -29,7 +26,10 @@ class UIInfo : public QDialog
     Q_OBJECT
 
 public:
-    explicit UIInfo(QWidget *parent = 0);
+    explicit UIInfo(
+      std::shared_ptr<DownloadManager> downloadManager_, 
+      std::shared_ptr<PluginManager> pluginManager_,
+      QWidget *parent = nullptr);
     ~UIInfo();
     void setCurrentVersion(QString);
     void loadComponentInfo(QMap<QString, component_information> components);
@@ -39,7 +39,8 @@ private:
     QTimer* timer;
     QFile* logFile;
     UIPendingRequests* uiPendingRequests;
-
+    std::shared_ptr<DownloadManager> downloadManager;
+    std::shared_ptr<PluginManager> pluginManager;
 
 private slots:
     void updateStatistics();

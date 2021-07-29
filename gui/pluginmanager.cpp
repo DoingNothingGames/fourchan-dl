@@ -1,9 +1,9 @@
 ﻿#include "pluginmanager.h"
 
-PluginManager::PluginManager(QObject *parent) :
+PluginManager::PluginManager(std::shared_ptr<DownloadManager> downloadManager, QObject *parent) :
     QObject(parent)
 {
-    requestHandler = new RequestHandler(this);
+    requestHandler = new RequestHandler(downloadManager, this);
     loadPlugins();
 }
 

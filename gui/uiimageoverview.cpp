@@ -1,14 +1,23 @@
 ﻿#include "uiimageoverview.h"
 #include "ui_uiimageoverview.h"
 
-UIImageOverview::UIImageOverview(QWidget *parent) :
+UIImageOverview::UIImageOverview(
+  std::shared_ptr<DownloadManager> downloadManager_, 
+  std::shared_ptr<PluginManager> pluginManager_,
+  std::shared_ptr<FolderShortcuts> folderShortcuts_,
+  std::shared_ptr<ThumbnailCreator> thumbnailCreator_,
+  QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::UIImageOverview)
+    ui(new Ui::UIImageOverview),
+    downloadManager(downloadManager_),
+    pluginManager(pluginManager_),
+    folderShortcuts(folderShortcuts_),
+    thumbnailCreator(thumbnailCreator_)
 {
     QClipboard *clipboard = QApplication::clipboard();
     QTime time;
 
-    requestHandler = new RequestHandler(this);
+    requestHandler = new RequestHandler(downloadManager, this);
     iParser = 0;
     oParser = 0;
     parserThread = new QThread();
@@ -65,7 +74,7 @@ UIImageOverview::UIImageOverview(QWidget *parent) :
     connect(openFileAction, SIGNAL(triggered()), this, SLOT(openFile()));
 
     connect(timer, SIGNAL(timeout()), this, SLOT(triggerRescan()));
-    connect(folderShortcuts, SIGNAL(shortcutsChanged()), this, SLOT(fillShortcutComboBox()));
+    connect(folderShortcuts.get(), SIGNAL(shortcutsChanged()), this, SLOT(fillShortcutComboBox()));
     connect(ui->cbFolderShortcuts, SIGNAL(currentIndexChanged(QString)), this, SLOT(selectShortcut(QString)));
     connect(ui->leSavepath, SIGNAL(textChanged(QString)), this, SLOT(checkForFolderShortcut(QString)));
     connect(ui->btnAddShortcut, SIGNAL(clicked()), this, SLOT(addShortcut()));
@@ -75,8 +84,8 @@ UIImageOverview::UIImageOverview(QWidget *parent) :
     connect(ui->listWidget, SIGNAL(deleteItem()), this, SLOT(deleteFile()));
     connect(ui->listWidget, SIGNAL(reloadItem()), this, SLOT(reloadFile()));
 
-    connect(tnt, SIGNAL(thumbnailAvailable(QString,QString)), this, SLOT(addThumbnail(QString,QString)));
-    connect(tnt, SIGNAL(thumbnailsAvailable(QString)), this, SLOT(addThumbnails(QString)));
+    connect(thumbnailCreator.get(), SIGNAL(thumbnailAvailable(QString,QString)), this, SLOT(addThumbnail(QString,QString)));
+    connect(thumbnailCreator.get(), SIGNAL(thumbnailsAvailable(QString)), this, SLOT(addThumbnails(QString)));
 
     connect(thumbnailCheckTimer, SIGNAL(timeout()), this, SLOT(checkForMissingThumbnails()));
 
@@ -241,7 +250,7 @@ void UIImageOverview::triggerRescan(void) {
 void UIImageOverview::createThumbnail(QString s) {
     QString thumbnail_location;
     if (!_threadBlocked) {
-        thumbnail_location = tnt->addToList(s);
+        thumbnail_location = thumbnailCreator->addToList(s);
         QLOG_TRACE() << __func__ << ":: Adding thumbnail for" << s;
         pendingThumbnails.append(s);
 
@@ -352,7 +361,7 @@ void UIImageOverview::deleteFile(void) {
             blackList->add(uri);
     }
 
-    cacheFile = tnt->getCacheFile(filename);
+    cacheFile = thumbnailCreator->getCacheFile(filename);
 
     emit removeFiles(QStringList(cacheFile));
 }
@@ -409,8 +418,11 @@ void UIImageOverview::openFile(void) {
                     slImageList << images.at(i).savedAs;
                 }
             }
-            imageViewer->setImageList(slImageList);
-            imageViewer->setCurrentImage(ui->listWidget->currentItem()->text());
+            //imageViewer->setImageList(slImageList);
+            //imageViewer->setCurrentImage(ui->listWidget->currentItem()->text());
+
+            auto filename = ui->listWidget->currentItem()->text();
+            emit openedFileFromImageList(filename, slImageList);
         }
         else {
             QDesktopServices::openUrl(QUrl(QString("file:///%1").arg(filename)));
@@ -553,7 +565,7 @@ void UIImageOverview::closeEvent(QCloseEvent *event)
     // Delete all thumbnails
     QStringList fileList;
     for (int i=0; i<ui->listWidget->count(); i++) {
-        fileList.append(tnt->getCacheFile(
+        fileList.append(thumbnailCreator->getCacheFile(
                             ui->listWidget->item(i)->text()
                             )
                     );
@@ -779,7 +791,7 @@ void UIImageOverview::deleteAllThumbnails() {
     fileList.clear();
 
     for (int i=0; i<ui->listWidget->count(); i++) {
-        fileList.append(tnt->getCacheFile(
+        fileList.append(thumbnailCreator->getCacheFile(
                             ui->listWidget->item(i)->text()
                             )
                         );
@@ -793,7 +805,7 @@ void UIImageOverview::deleteAllFiles() {
 
     for (int i=0; i<ui->listWidget->count(); i++) {
         files.append(ui->listWidget->item(i)->text());
-        files.append(tnt->getCacheFile(
+        files.append(thumbnailCreator->getCacheFile(
                             ui->listWidget->item(i)->text()
                             )
                         );
@@ -1269,11 +1281,13 @@ void UIImageOverview::showImagePreview() {
             }
         }
 
-        imageViewer->setImageList(slImageList);
+        //imageViewer->setImageList(slImageList);
 
-        if (slImageList.count() > 0) {
-            imageViewer->setCurrentImage(0);
-        }
+        //if (slImageList.count() > 0) {
+        //    imageViewer->setCurrentImage(0);
+        //}
+
+        emit openedImageFromImageList(0, slImageList);
     }
 }
 

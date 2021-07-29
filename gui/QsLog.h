@@ -26,12 +26,16 @@
 #ifndef QSLOG_H
 #define QSLOG_H
 
+#include <memory>
+
 #include <QDebug>
 #include <QString>
 
 namespace QsLogging
 {
 class Destination;
+using DestinationPtr = std::shared_ptr<Destination>;
+
 enum Level
 {
    TraceLevel = 0,
@@ -53,7 +57,7 @@ public:
    }
 
    //! Adds a log message destination. Don't add null destinations.
-   void addDestination(Destination* destination);
+   void addDestination(DestinationPtr destination);
    //! Logging at a level < 'newLevel' will be ignored
    void setLoggingLevel(Level newLevel);
    //! The default level is INFO
@@ -80,8 +84,8 @@ public:
 
 private:
    Logger();
-   Logger(const Logger&);
-   Logger& operator=(const Logger&);
+   Logger(const Logger&) = delete;
+   Logger& operator=(const Logger&) = delete;
    ~Logger();
 
    void write(const QString& message);

@@ -9,11 +9,6 @@
 #include <QSettings>
 #include <QMutex>
 #include <QWaitCondition>
-#include <QDebug>
-#include <QFile>
-#include <QCoreApplication>
-#include <QDir>
-#include "QsLog.h"
 
 class ThumbnailCreator : public QObject
 {

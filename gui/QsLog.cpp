@@ -35,7 +35,7 @@
 
 namespace QsLogging
 {
-typedef QList<Destination*> DestinationList;
+typedef QList<DestinationPtr> DestinationList;
 
 static const char TraceString[] = "TRACE";
 static const char DebugString[] = "DEBUG";
@@ -94,7 +94,7 @@ Logger::~Logger()
    delete d;
 }
 
-void Logger::addDestination(Destination* destination)
+void Logger::addDestination(DestinationPtr destination)
 {
    assert(destination);
    d->destList.push_back(destination);
@@ -136,7 +136,6 @@ Logger::Helper::~Helper()
       // you shouldn't throw exceptions from a sink
       Q_UNUSED(e);
       assert(!"exception in logger helper destructor");
-      throw;
    }
 }
 

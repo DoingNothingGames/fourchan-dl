@@ -72,12 +72,12 @@ void DebugOutputDestination::write(const QString& message)
 
 DestinationPtr DestinationFactory::MakeFileDestination(const QString& filePath)
 {
-   return DestinationPtr(new FileDestination(filePath));
+   return std::make_shared<FileDestination>(filePath);
 }
 
 DestinationPtr DestinationFactory::MakeDebugOutputDestination()
 {
-   return DestinationPtr(new DebugOutputDestination);
+   return std::make_shared<DebugOutputDestination>();
 }
 
 } // end namespace

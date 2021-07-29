@@ -1,4 +1,13 @@
-﻿#include "thumbnailcreator.h"
+﻿
+
+#include <QDebug>
+#include <QFile>
+#include <QCoreApplication>
+#include <QDir>
+
+#include "QsLog.h"
+
+#include "thumbnailcreator.h"
 
 ThumbnailCreator::ThumbnailCreator(QObject *parent) :
     QObject(parent)

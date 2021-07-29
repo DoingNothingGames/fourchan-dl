@@ -1,15 +1,28 @@
-﻿#include "mainwindow.h"
+﻿
+#include "application.h"
+
+#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(std::shared_ptr<DownloadManager> downloadManager_, 
+  std::shared_ptr<ThumbnailCreator> thumbnailCreator_, 
+  std::shared_ptr<PluginManager> pluginManager_,
+  std::shared_ptr<FolderShortcuts> folderShortcuts_,
+  QString updaterFileName_,
+  QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    downloadManager(downloadManager_),
+    thumbnailCreator(thumbnailCreator_),
+    pluginManager(pluginManager_),
+    folderShortcuts(folderShortcuts_),
+    updaterFileName(updaterFileName_)
 {
-    uiConfig = new UIConfig(this);
-    uiInfo = new UIInfo(this);
-    threadAdder = new UIThreadAdder(this);
+    uiConfig = new UIConfig(folderShortcuts, this);
+    uiInfo = new UIInfo(downloadManager, pluginManager, this);
+    threadAdder = new UIThreadAdder(folderShortcuts, this);
     aui = new ApplicationUpdateInterface(this);
-    requestHandler = new RequestHandler(this);
+    requestHandler = new RequestHandler(downloadManager, this);
     blackList = new BlackList(this);
 
     thumbnailRemoverThread = new QThread();
@@ -71,22 +84,22 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
     connect(uiConfig, SIGNAL(configurationChanged()), this, SLOT(loadOptions()));
     connect(uiConfig, SIGNAL(configurationChanged()), blackList, SLOT(loadSettings()));
-    connect(uiConfig, SIGNAL(configurationChanged()), downloadManager, SLOT(loadSettings()));
+    connect(uiConfig, SIGNAL(configurationChanged()), downloadManager.get(), SLOT(loadSettings()));
     connect(uiConfig, SIGNAL(deleteAllThumbnails()), thumbnailRemover, SLOT(removeAll()));
     connect(ui->actionStart_all, SIGNAL(triggered()), this, SLOT(startAll()));
     connect(ui->actionStop_all, SIGNAL(triggered()), this, SLOT(stopAll()));
     connect(ui->actionPauseAll, SIGNAL(triggered()), this, SLOT(pauseAll()));
     connect(threadAdder, SIGNAL(addTab(QString)), this, SLOT(createTab(QString)));
-    connect(downloadManager, SIGNAL(error(QString)), ui->statusBar, SLOT(showMessage(QString)));
-    connect(downloadManager, SIGNAL(finishedRequestsChanged(int)), this, SLOT(updateDownloadProgress()));
-    connect(downloadManager, SIGNAL(totalRequestsChanged(int)), this, SLOT(updateDownloadProgress()));
+    connect(downloadManager.get(), SIGNAL(error(QString)), ui->statusBar, SLOT(showMessage(QString)));
+    connect(downloadManager.get(), SIGNAL(finishedRequestsChanged(int)), this, SLOT(updateDownloadProgress()));
+    connect(downloadManager.get(), SIGNAL(totalRequestsChanged(int)), this, SLOT(updateDownloadProgress()));
     connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(addThreadOverviewMark(int)));
 
     connect(overviewUpdateTimer, SIGNAL(timeout()), this, SLOT(overviewTimerTimeout()));
     connect(historyMenu, SIGNAL(triggered(QAction*)), this, SLOT(restoreFromHistory(QAction*)));
 
-    connect(tnt, SIGNAL(pendingThumbnails(int)), ui->pbPendingThumbnails, SLOT(setValue(int)));
-    connect(tnt, SIGNAL(pendingThumbnails(int)), this, SLOT(pendingThumbnailsChanged(int)));
+    connect(thumbnailCreator.get(), SIGNAL(pendingThumbnails(int)), ui->pbPendingThumbnails, SLOT(setValue(int)));
+    connect(thumbnailCreator.get(), SIGNAL(pendingThumbnails(int)), this, SLOT(pendingThumbnailsChanged(int)));
 
     connect(aui, SIGNAL(connectionEstablished()), this, SLOT(updaterConnected()));
     connect(aui, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
@@ -122,7 +135,7 @@ int MainWindow::addTab() {
     int ci;
     UIImageOverview* w;
 
-    w = new UIImageOverview(this);
+    w = new UIImageOverview(downloadManager, pluginManager, folderShortcuts, thumbnailCreator, this);
     w->setBlackList(blackList);
 
     ci = ui->tabWidget->addTab(w, "no name");
@@ -345,7 +358,7 @@ void MainWindow::saveSettings(void) {
         QLOG_ERROR() << "MainWindow :: Saving settings failed";
         QLOG_ERROR() << "MainWindow ::  error: " << settings->status();
     }
-    imageViewer->saveSettings();
+    emit settingsSaved();
 }
 
 void MainWindow::loadOptions(void) {
@@ -358,7 +371,7 @@ void MainWindow::loadOptions(void) {
         maxDownloads = settings->value("concurrent_downloads", 1).toInt();
 
         updateWidgetSettings();
-        tnt->setIconSize(QSize(settings->value("thumbnail_width",150).toInt(),settings->value("thumbnail_height",150).toInt()));
+        thumbnailCreator->setIconSize(QSize(settings->value("thumbnail_width",150).toInt(),settings->value("thumbnail_height",150).toInt()));
     settings->endGroup();
 
     settings->beginGroup("network");
@@ -445,6 +458,7 @@ void MainWindow::askForUpdate() {
 
 #ifdef USE_UPDATER
     msg.append("<br>Do you want to update now?");
+    auto& app = chandl::Application::instance();
 
     switch (QMessageBox::question(0,"New version available",
                                   msg,
@@ -482,6 +496,7 @@ void MainWindow::askForUpdate() {
 
 void MainWindow::getUpdaterVersion() {
 #ifdef USE_UPDATER
+    auto& app = chandl::Application::instance();
     QProcess process;
     QFileInfo fi;
 
@@ -523,12 +538,12 @@ void MainWindow::pauseAll() {
     if (_paused) {
         ui->actionPauseAll->setIcon(QIcon(":/icons/resources/media-playback-pause.png"));
         downloadManager->resumeDownloads();
-        tnt->resume();
+        thumbnailCreator->resume();
     }
     else {
         ui->actionPauseAll->setIcon(QIcon(":/icons/resources/media-playback-pause-red.png"));
         downloadManager->pauseDownloads();
-        tnt->halt();
+        thumbnailCreator->halt();
     }
 
     _paused = !_paused;
@@ -945,7 +960,7 @@ void MainWindow::updaterConnected() {
     }
     else {
         if (runUpdate) {
-            tnt->halt();
+            thumbnailCreator->halt();
             downloadManager->pauseDownloads();
 
             foreach (QString component, updateableComponents) {
@@ -1069,12 +1084,12 @@ void MainWindow::toggleThreadOverview() {
 
 void MainWindow::aboutToQuit() {
     downloadManager->pauseDownloads();
-    tnt->deleteLater();
-    tnt->wakeup();
+    //thumbnailCreator->deleteLater();
+    thumbnailCreator->wakeup();
     saveSettings();
     removeTrayIcon();
     cleanThreadCache();
-    thumbnailRemover->deleteLater();
+    //thumbnailRemover->deleteLater();
     thumbnailRemoverThread->exit(0);
 
     emit quitAll();

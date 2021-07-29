@@ -2,9 +2,14 @@
 #include "ui_uiinfo.h"
 
 
-UIInfo::UIInfo(QWidget *parent) :
+UIInfo::UIInfo(
+  std::shared_ptr<DownloadManager> downloadManager_, 
+  std::shared_ptr<PluginManager> pluginManager_,
+  QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::UIInfo)
+    ui(new Ui::UIInfo),
+    downloadManager(downloadManager_),
+    pluginManager(pluginManager_)
 {
     QString text;
     ui->setupUi(this);

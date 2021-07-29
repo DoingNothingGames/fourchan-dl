@@ -1,4 +1,7 @@
-﻿#include "downloadrequest.h"
+﻿
+#include <QTimer>
+
+#include "downloadrequest.h"
 
 DownloadRequest::DownloadRequest(QObject *parent) :
     QObject(parent)

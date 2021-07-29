@@ -1,6 +1,8 @@
 ﻿#ifndef PLUGINMANAGER_H
 #define PLUGINMANAGER_H
 
+#include <memory>
+
 #include <QObject>
 #include <QCoreApplication>
 #include <QtDebug>
@@ -10,13 +12,11 @@
 #include "ParserPluginInterface.h"
 #include "downloadmanager.h"
 
-extern DownloadManager* downloadManager;
-
 class PluginManager : public QObject
 {
     Q_OBJECT
 public:
-    explicit PluginManager(QObject *parent = 0);
+    explicit PluginManager(std::shared_ptr<DownloadManager> downloadManager, QObject *parent = 0);
     QStringList getAvailablePlugins(void);
     component_information getInfo(QString name);
     ParserPluginInterface* getParser(QUrl, bool*);

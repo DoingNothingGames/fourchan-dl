@@ -25,7 +25,6 @@ public:
     void setImageList(QStringList imageList);
     void setCurrentImage(int i);
     void setCurrentImage(QString filename);
-    void saveSettings();
 
 private:
     Ui::UIImageViewer *ui;
@@ -41,6 +40,9 @@ private:
     void loadImage(int);
     void loadSettings();
     void transformPixmap();
+
+public slots:
+  void saveSettings();
 
 private slots:
     void fitImage();

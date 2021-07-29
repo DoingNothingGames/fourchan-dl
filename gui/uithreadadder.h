@@ -10,8 +10,6 @@
 #include <QSettings>
 #include "foldershortcuts.h"
 
-extern FolderShortcuts* folderShortcuts;
-
 namespace Ui {
     class UIThreadAdder;
 }
@@ -21,7 +19,7 @@ class UIThreadAdder : public QDialog
     Q_OBJECT
 
 public:
-    explicit UIThreadAdder(QWidget *parent = 0);
+    explicit UIThreadAdder(std::shared_ptr<FolderShortcuts> folderShortcuts_, QWidget *parent = 0);
     ~UIThreadAdder();
 
 private:
@@ -29,6 +27,7 @@ private:
     QClipboard* clipboard;
     QSettings* settings;
     QList<int> timeoutValues;
+    std::shared_ptr<FolderShortcuts> folderShortcuts;
 
     void addLinks(QStringList links);
     QStringList parseText(QString text);
