@@ -33,7 +33,6 @@ namespace chandl {
     std::shared_ptr<ThumbnailCreator> thumbnailCreator;
     std::shared_ptr<FolderShortcuts> folderShortcuts;
     std::shared_ptr<PluginManager> pluginManager;
-    std::shared_ptr<UIImageViewer> imageViewer;
     std::shared_ptr<QFile> fLogFile;
     QTextStream logOutput;
     std::shared_ptr<MainWindow> mainWindow;

@@ -124,6 +124,9 @@ MainWindow::MainWindow(std::shared_ptr<DownloadManager> downloadManager_,
     autosaveTimer->setInterval(1000*60*10);     // 10 Minutes
     autosaveTimer->setSingleShot(false);
     connect(autosaveTimer, SIGNAL(timeout()), this, SLOT(saveSettings()));
+
+    imageViewer = new UIImageViewer(this);
+    connect(this, &MainWindow::settingsSaved, imageViewer.data(), &UIImageViewer::saveSettings);
 }
 
 MainWindow::~MainWindow()

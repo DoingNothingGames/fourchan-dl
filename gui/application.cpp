@@ -90,8 +90,6 @@ namespace chandl {
     thumbnailCreator->start();
 
     mainWindow = std::make_shared<MainWindow>(downloadManager, thumbnailCreator, pluginManager, folderShortcuts, updaterFileName);
-    imageViewer = std::make_shared<UIImageViewer>(mainWindow.get());
-    connect(mainWindow.get(), &MainWindow::settingsSaved, imageViewer.get(), &UIImageViewer::saveSettings);
 
     mainWindow->show();
     mainWindow->restoreTabs();

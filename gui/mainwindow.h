@@ -20,6 +20,7 @@
 #include "thumbnailremover.h"
 #include "QsLog.h"
 
+class UIImageViewer;
 class UIImageOverview;
 class ThumbnailCreator;
 
@@ -70,10 +71,12 @@ private:
     bool checkUpdaterVersion;
     EcWin7 win7;
     bool _paused;
+
     std::shared_ptr<DownloadManager> downloadManager;
     std::shared_ptr<ThumbnailCreator> thumbnailCreator;
     std::shared_ptr<PluginManager> pluginManager;
     std::shared_ptr<FolderShortcuts> folderShortcuts;
+    QPointer<UIImageViewer> imageViewer;
     QString updaterFileName;
 
     void restoreWindowSettings(void);
