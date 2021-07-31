@@ -543,7 +543,7 @@ void MainWindow::pauseAll() {
     else {
         ui->actionPauseAll->setIcon(QIcon(":/icons/resources/media-playback-pause-red.png"));
         downloadManager->pauseDownloads();
-        thumbnailCreator->halt();
+        thumbnailCreator->pause();
     }
 
     _paused = !_paused;
@@ -960,7 +960,7 @@ void MainWindow::updaterConnected() {
     }
     else {
         if (runUpdate) {
-            thumbnailCreator->halt();
+            thumbnailCreator->pause();
             downloadManager->pauseDownloads();
 
             foreach (QString component, updateableComponents) {
@@ -1084,8 +1084,6 @@ void MainWindow::toggleThreadOverview() {
 
 void MainWindow::aboutToQuit() {
     downloadManager->pauseDownloads();
-    //thumbnailCreator->deleteLater();
-    thumbnailCreator->wakeup();
     saveSettings();
     removeTrayIcon();
     cleanThreadCache();

@@ -21,6 +21,7 @@ namespace chandl {
     Q_OBJECT;
   public:
     Application(int& argc, char* argv[]);
+    ~Application();
 
     static Application& instance();
 
@@ -36,6 +37,5 @@ namespace chandl {
     std::shared_ptr<QFile> fLogFile;
     QTextStream logOutput;
     std::shared_ptr<MainWindow> mainWindow;
-    std::unique_ptr<QThread> thumbnailThread;
   };
 }

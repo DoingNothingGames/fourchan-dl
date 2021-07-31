@@ -9,48 +9,39 @@
 #include <QSettings>
 #include <QMutex>
 #include <QWaitCondition>
+#include <QThread>
 
-class ThumbnailCreator : public QObject
+class ThumbnailCreator : public QThread
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    explicit ThumbnailCreator(QObject *parent = 0);
-    void setIconSize(QSize s);
-    QString addToList(QString s);
-    QString getCacheFile(QString);
-    void halt();
-    void resume();
-    void wakeup();
+  ThumbnailCreator();
+  ~ThumbnailCreator();
+
+  void setIconSize(QSize s);
+  QString addToList(QString s);
+  QString getCacheFile(QString);
+
+  void stop();
+  void pause();
+  void resume();
 
 private:
-    QStringList list;
-    QSize* iconSize;
-    bool hq;
-    volatile bool canceled;
-    volatile bool halted;
-    QSettings* settings;
-    bool newImages;
-    QString cacheFolder;
-    bool useCache;
-    QMutex mutex;
-    QWaitCondition condition;
+  QStringList list;
+  QSize* iconSize = nullptr;
+  QAtomicInt stopped = false;
+  QAtomicInt paused = false;
+  QSettings* settings = nullptr;
+  QMutex mutex;
+  QWaitCondition condition;
 
-    QTimer* event_emit_timer;
-    bool thumbnails_created;
-    QStringList rendered_thumbnails;
-    bool use_combined_thumbnail_list;
-
-private slots:
-    void eventEmitTimerTriggered();
-    
 signals:
-    void pendingThumbnails(int);
-    void thumbnailAvailable(QString, QString);
-    void thumbnailsAvailable(QString);
-    
-public slots:
-    void go();
-    
+  void pendingThumbnails(int);
+  void thumbnailAvailable(QString, QString);
+  void thumbnailsAvailable(QString);
+
+private:
+  void run() override;
 };
 
 #endif // THUMBNAILCREATOR_H

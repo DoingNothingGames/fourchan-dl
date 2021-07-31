@@ -84,16 +84,10 @@ namespace chandl {
 
     downloadManager->pauseDownloads();  // Do not download anything until we are fully set
 
-    thumbnailThread = std::make_unique<QThread>();
     thumbnailCreator = std::make_shared<ThumbnailCreator>();
-    thumbnailCreator->moveToThread(thumbnailThread.get());
-    //    thumbnailThread.setPriority(QThread::NormalPriority);
 
-    connect(thumbnailThread.get(), SIGNAL(started()), thumbnailCreator.get(), SLOT(go()));
     downloadManager->resumeDownloads();
-
-
-    thumbnailThread->start();
+    thumbnailCreator->start();
 
     mainWindow = std::make_shared<MainWindow>(downloadManager, thumbnailCreator, pluginManager, folderShortcuts, updaterFileName);
     imageViewer = std::make_shared<UIImageViewer>(mainWindow.get());
@@ -103,9 +97,9 @@ namespace chandl {
     mainWindow->restoreTabs();
 
     connect(this, SIGNAL(aboutToQuit()), mainWindow.get(), SLOT(aboutToQuit()));
-    connect(mainWindow.get(), SIGNAL(quitAll()), thumbnailThread.get(), SLOT(terminate()));
-    //connect(mainWindow.get(), SIGNAL(quitAll()), downloadManager.get(), SLOT(deleteLater()));
   }
+
+  Application::~Application() = default;
 
   Application& Application::instance() {
     auto app = qobject_cast<Application*>(QApplication::instance());
