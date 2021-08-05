@@ -5,6 +5,8 @@
 #include <QSettings>
 #include <QStringList>
 
+#include "appsettings.h"
+
 class FolderShortcuts : public QObject
 {
     Q_OBJECT
@@ -14,7 +16,7 @@ public:
     QString getPath(QString);
     bool shortcutExists(QString);
 private:
-    QSettings* settings;
+    chandl::AppSettings settings;
     QMap<QString, QString> _shortcuts;
 
     void loadSettings();

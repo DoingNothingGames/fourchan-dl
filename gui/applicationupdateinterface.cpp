@@ -4,7 +4,6 @@ ApplicationUpdateInterface::ApplicationUpdateInterface(QObject *parent) :
     QObject(parent)
 {
     udpSocket = new QUdpSocket();
-    settings = new QSettings("settings.ini", QSettings::IniFormat);
     pinging = false;
     connected = false;
     answerPing = false;
@@ -14,8 +13,9 @@ ApplicationUpdateInterface::ApplicationUpdateInterface(QObject *parent) :
     fileToMoveTo = "";
     filesToMove.clear();
 
-    if (!udpSocket->bind(settings->value("updater/application_port", 60001).toInt())) {
-        QLOG_ERROR() << "ApplicationUpdateInterface :: " << "Could not create socket on port " << settings->value("updater/application_port", 60001).toInt() << "(" << udpSocket->errorString() << ")";
+    auto port = settings.getUpdaterAppPort();
+    if (!udpSocket->bind(port)) {
+        QLOG_ERROR() << "ApplicationUpdateInterface :: " << "Could not create socket on port " << port << "(" << udpSocket->errorString() << ")";
     }
 
     connect(udpSocket, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
@@ -137,7 +137,7 @@ void ApplicationUpdateInterface::writeCommand(int c, QByteArray a) {
     udpSocket->writeDatagram(
             createCommand(c, a),
             QHostAddress(HOST_ADDRESS),
-            settings->value("updater/updater_port", 60000).toInt()
+            settings.getUpdaterPort()
             );
 }
 

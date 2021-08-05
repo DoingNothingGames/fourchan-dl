@@ -1,4 +1,7 @@
-﻿#include "downloadmanager.h"
+﻿
+#include <QDir>
+
+#include "downloadmanager.h"
 
 #define MAX_CONCURRENT_DOWNLOADS_PER_NAM 5
 
@@ -11,7 +14,6 @@ DownloadManager::DownloadManager(QObject *parent) :
     nams.clear();
     nams.append(new NetworkAccessManager(this));    // Add at least one AccessManager
     nams.at(0)->setCookieJar(cookies);
-    settings = new QSettings("settings.ini", QSettings::IniFormat);
 
     waitTimer = new QTimer();
     waitTimer->setSingleShot(true);
@@ -39,20 +41,15 @@ DownloadManager::DownloadManager(QObject *parent) :
 }
 
 void DownloadManager::loadSettings() {
-    settings->beginGroup("download_manager");
-        maxRequests = settings->value("concurrent_downloads", 20).toInt();
-        initialTimeout = settings->value("initial_timeout", 30).toInt()*1000;
-        runningTimeout = settings->value("running_timeout", 20).toInt()*1000;
-        _useThreadCache = settings->value("use_thread_cache", false).toBool();
-        _threadCachePath = settings->value("thread_cache_path", "").toString();
-    settings->endGroup();
+  maxRequests = settings.getConcurrentDownloads();
+  initialTimeout = settings.getInitialTimeout() * 1000;
+  runningTimeout = settings.getRunningTimeout() * 1000;
+  _useThreadCache = settings.getUseThreadCache(); 
+  _threadCachePath = settings.getThreadCachePath();
+  statistic_downloadedFiles = settings.getDownloadedFilesStatistic();
+  statistic_downloadedKBytes = settings.getDownloadedKBytesStatistic();
 
-    settings->beginGroup("statistics");
-        statistic_downloadedFiles = settings->value("downloaded_files", 0).toFloat();
-        statistic_downloadedKBytes = settings->value("downloaded_kbytes", 0).toFloat();
-    settings->endGroup();
-
-    setupNetworkAccessManagers(qCeil(maxRequests/MAX_CONCURRENT_DOWNLOADS_PER_NAM));
+  setupNetworkAccessManagers(qCeil(maxRequests/MAX_CONCURRENT_DOWNLOADS_PER_NAM));
 }
 
 void DownloadManager::replyFinished(QNetworkReply* reply) {
@@ -115,8 +112,7 @@ void DownloadManager::replyFinished(QNetworkReply* reply) {
                             if (threadCacheFilename != ".") {
                                 QDir dir;
                                 QString path;
-                                path = settings->value("download_manager/thread_cache_path", QString("%1/%2").arg(QCoreApplication::applicationDirPath())
-                                                       .arg("thread-cache")).toString();
+                                path = settings.getThreadCachePath();
                                 dir.setPath(path);
                                 if (!dir.exists()) {
                                     dir.mkpath(path);
@@ -124,7 +120,7 @@ void DownloadManager::replyFinished(QNetworkReply* reply) {
                                 f.setFileName(threadCacheFilename);
                                 f.open(QIODevice::WriteOnly | QIODevice::Truncate);
                                 if (f.isOpen() && f.isWritable()) {
-                                    if (settings->value("download_manager/compress_cache_file", true).toBool()) {
+                                    if (settings.getCompressCacheFile()) {
                                         f.write(qCompress(dr->response()));
                                     }
                                     else {
@@ -228,6 +224,16 @@ qint64 DownloadManager::requestDownload(RequestHandler* caller, QUrl url, int pr
     return uid;
 }
 
+int DownloadManager::getStatisticsFiles() const
+{
+  return statistic_downloadedFiles;
+}
+
+float DownloadManager::getStatisticsKBytes() const
+{
+  return statistic_downloadedKBytes;
+}
+
 /**
  * Add Request to internal list and start Thread/Download immediately if max. number of downloads is not met.
  */
@@ -310,7 +316,7 @@ void DownloadManager::startRequest(qint64 uid) {
 
         req = QNetworkRequest(dr->url());
         req.setAttribute(QNetworkRequest::CookieSaveControlAttribute, QNetworkRequest::Automatic);
-        req.setRawHeader("User-Agent", settings->value("options/user-agent", "Wget/1.12").toString().toLatin1());
+        req.setRawHeader("User-Agent", settings.getUserAgent().toLatin1());
 //        req.setRawHeader("User-Agent", "Opera/9.80 (Windows NT 6.1; U; en) Presto/2.9.168 Version/11.50");
         currentRequests++;
         nam = getFreeNAM();
@@ -454,11 +460,6 @@ void DownloadManager::removeRequest(qint64 uid) {
     }
 }
 
-void DownloadManager::getStatistics(int *files, float *kbytes) {
-    *files = statistic_downloadedFiles;
-    *kbytes = statistic_downloadedKBytes;
-}
-
 NetworkAccessManager* DownloadManager::getFreeNAM() {
     NetworkAccessManager* ret;
     QMap<int, NetworkAccessManager*> load;
@@ -559,7 +560,7 @@ QByteArray DownloadManager::getCachedReply(QUrl url) {
         f.open(QIODevice::ReadOnly);
 
         if (f.isOpen() && f.isReadable()) {
-            if (settings->value("download_manager/compress_cache_file", true).toBool()) {
+            if (settings.getCompressCacheFile()) {
                 ret = qUncompress(f.readAll());
             }
             else {

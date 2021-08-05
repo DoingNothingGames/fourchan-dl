@@ -22,7 +22,6 @@ private:
     QNetworkAccessManager* manager;
     QTimer* timer;
     QFile* blackListFile;
-    QSettings* settings;
     bool useBlackList;
     int interval;
 

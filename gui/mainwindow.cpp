@@ -65,7 +65,6 @@ MainWindow::MainWindow(std::shared_ptr<DownloadManager> downloadManager_,
 
     ui->menuBar->addAction(ui->actionShowInfo);
 
-    settings = new QSettings("settings.ini", QSettings::IniFormat);
     ui->tabWidget->removeTab(0);
     oldActiveTabIndex = 0;
     pendingThumbnailsChanged(0);
@@ -134,62 +133,62 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-int MainWindow::addTab() {
+QPointer<UIImageOverview> MainWindow::addTab() {
     int ci;
-    UIImageOverview* w;
+    auto tab = new UIImageOverview(downloadManager, pluginManager, folderShortcuts, thumbnailCreator, this);
+    tab->setBlackList(blackList);
 
-    w = new UIImageOverview(downloadManager, pluginManager, folderShortcuts, thumbnailCreator, this);
-    w->setBlackList(blackList);
+    ci = ui->tabWidget->addTab(tab, "no name");
+    if (settings.getRememberDirectory())
+        tab->setDirectory(defaultDirectory);
 
-    ci = ui->tabWidget->addTab(w, "no name");
-    if (settings->value("options/remember_directory", false).toBool())
-        w->setDirectory(defaultDirectory);
+    connect(tab, SIGNAL(errorMessage(QString)), this, SLOT(displayError(QString)));
+    connect(tab, SIGNAL(tabTitleChanged(UIImageOverview*, QString)), this, SLOT(changeTabTitle(UIImageOverview*, QString)));
+    connect(tab, SIGNAL(closeRequest(UIImageOverview*, int)), this, SLOT(processCloseRequest(UIImageOverview*, int)));
+    connect(tab, SIGNAL(directoryChanged(QString)), this, SLOT(setDefaultDirectory(QString)));
+    connect(tab, SIGNAL(createTabRequest(QString)), this, SLOT(createTab(QString)));
+    connect(tab, SIGNAL(removeFiles(QStringList)), this, SIGNAL(removeFiles(QStringList)));
+    connect(tab, SIGNAL(changed()), this, SLOT(scheduleOverviewUpdate()));
 
-    connect(w, SIGNAL(errorMessage(QString)), this, SLOT(displayError(QString)));
-    connect(w, SIGNAL(tabTitleChanged(UIImageOverview*, QString)), this, SLOT(changeTabTitle(UIImageOverview*, QString)));
-    connect(w, SIGNAL(closeRequest(UIImageOverview*, int)), this, SLOT(processCloseRequest(UIImageOverview*, int)));
-    connect(w, SIGNAL(directoryChanged(QString)), this, SLOT(setDefaultDirectory(QString)));
-    connect(w, SIGNAL(createTabRequest(QString)), this, SLOT(createTab(QString)));
-    connect(w, SIGNAL(removeFiles(QStringList)), this, SIGNAL(removeFiles(QStringList)));
-    connect(w, SIGNAL(changed()), this, SLOT(scheduleOverviewUpdate()));
+    changeTabTitle(tab, "idle");
 
-    changeTabTitle(w, "idle");
-
-    return ci;
+    return tab;
 }
 
-int MainWindow::addForegroundTab() {
-    int ci;
-    UIImageOverview* w;
-    QStringList sl;
+QPointer<UIImageOverview> MainWindow::addForegroundTab() {
+  QPointer<UIImageOverview> tab;
+  QStringList sl;
 
     if (threadExists(QApplication::clipboard()->text())) {
-        ci = addTab();
-        w = ((UIImageOverview*)ui->tabWidget->widget(ci));
-        sl = w->getValues().split(";;");
+        tab = addTab();
+        sl = tab->getValues().split(";;");
         sl.replace(0, "");
-        w->setValues(sl.join(";;"));
+        tab->setValues(sl.join(";;"));
     }
     else {
-        ci = addTab();
+        tab = addTab();
     }
-    ui->tabWidget->setCurrentIndex(ci);
-
-    return ci;
+    ui->tabWidget->setCurrentWidget(tab.data());
+    return tab;
 }
 
-void MainWindow::createTab(QString s) {
+QPointer<UIImageOverview> MainWindow::getTabOverview(int index)
+{
+  auto widget = ui->tabWidget->widget(index);
+  return qobject_cast<UIImageOverview*>(widget);
+}
+
+void MainWindow::createTab(QString values) {
     int index;
     UIImageOverview* w;
     QStringList sl;
 
-    sl = s.split(";;");
+    sl = values.split(";;");
 
     if (!threadExists(sl.at(0))) {
-        index = addTab();
-        w = ((UIImageOverview*)ui->tabWidget->widget(index));
-        w->setValues(s);
-        w->setAttribute(Qt::WA_DeleteOnClose, true);
+        auto tab = addTab();
+        tab->setValues(values);
+        tab->setAttribute(Qt::WA_DeleteOnClose, true);
     }
     else {
         QLOG_INFO() << "MainWindow :: Prevented opening of thread" << sl.at(0) << "because it's already open.";
@@ -232,7 +231,7 @@ void MainWindow::showConfiguration(void) {
 }
 
 void MainWindow::setDefaultDirectory(QString d) {
-    if (settings->value("options/remember_directory", false).toBool())
+    if (settings.getRememberDirectory())
         defaultDirectory = d;
 }
 
@@ -245,53 +244,41 @@ void MainWindow::changeTabTitle(UIImageOverview* w, QString s) {
 
 void MainWindow::restoreWindowSettings(void) {
     // Restore window position
-    QPoint p;
-    QSize s;
-    QByteArray ba;
-    int state;
+    auto pos = settings.getWindowPosition();
+    auto size = settings.getWindowSize();
+    auto widgetstate = settings.getWindowWidgetState();
+    auto state = settings.getWindowState();
 
-    settings->beginGroup("window");
-        p = settings->value("position",QPoint(0,0)).toPoint();
-        state = settings->value("state",0).toInt();
-        s = settings->value("size",QSize(0,0)).toSize();
-        ba = settings->value("widgetstate", QByteArray()).toByteArray();
-    settings->endGroup();
+    if (pos != QPoint(0,0))
+        this->move(pos);
 
-    if (p != QPoint(0,0))
-        this->move(p);
-
-    if (s != QSize(0,0))
-        this->resize(s);
+    if (size != QSize(0,0))
+        this->resize(size);
 
     if (state != Qt::WindowNoState)
         this->setWindowState((Qt::WindowState) state);
 
-    if (!ba.isEmpty())
-        this->restoreState(ba);
+    if (!widgetstate.isEmpty())
+        this->restoreState(widgetstate);
 
 //    ui->threadOverview->setVisible(settings->value("thread_overview/visible", true).toBool());
-    ui->actionTabOverview->setChecked(settings->value("thread_overview/visible", true).toBool());
+    ui->actionTabOverview->setChecked(settings.getThreadOverviewVisible());
 }
 
 void MainWindow::restoreTabs() {
     int tabCount;
 
-    tabCount = settings->value("tabs/count",0).toInt();
+    tabCount = settings.getTabsCount();
     downloadManager->pauseDownloads();
 
     ui->pbOpenRequests->setMaximum(tabCount);
     ui->pbOpenRequests->setValue(0);
     ui->pbOpenRequests->setFormat("Opening tab %v/%m");
     ui->tabWidget->setVisible(false);
-    if (settings->value("options/resume_session", false).toBool() && tabCount > 0) {
-        int ci;
-
-        for (int i=0; i<tabCount; i++) {
-            ci = addTab();
-
-            ((UIImageOverview*)ui->tabWidget->widget(ci))->setValues(
-                    settings->value(QString("tabs/tab%1").arg(i), ";;;;0;;every 30 seconds;;0").toString()
-                    );
+    if (settings.getResumeSession() && tabCount > 0) {
+        for (int i = 0; i < tabCount; i++) {
+            auto tab = addTab();
+            tab->setValues(settings.getTabValues(i));
             ui->pbOpenRequests->setValue((i+1));
         }
     } else {
@@ -307,105 +294,80 @@ void MainWindow::restoreTabs() {
 }
 
 void MainWindow::saveSettings(void) {
-    int downloadedFiles;
-    float downloadedKB;
-
     QLOG_INFO() << "MainWindow :: Saving settings";
     // Window related stuff
-    settings->beginGroup("window");
-        settings->setValue("position", this->pos());
-        if (this->windowState() == Qt::WindowNoState)
-            settings->setValue("size", this->size());
-        settings->setValue("state", QString("%1").arg(this->windowState()));
-        settings->setValue("widgetstate", this->saveState());
-    settings->endGroup();
+    settings.setWindowPosition(this->pos());
+    if (this->windowState() == Qt::WindowNoState)
+      settings.setWindowSize(this->size());
+    settings.setWindowState(static_cast<int>(this->windowState()));
+    settings.setWindowWidgetState(this->saveState());
+
 
     // Dock widget
-    settings->beginGroup("thread_overview");
-//    settings->setValue("size", ui->dockWidget->size());
-    settings->setValue("col_uri_width", ui->threadOverview->columnWidth(3));
-    settings->setValue("col_name_width", ui->threadOverview->columnWidth(0));
-    settings->setValue("col_images_width", ui->threadOverview->columnWidth(1));
-    settings->setValue("col_status_width", ui->threadOverview->columnWidth(2));
-    settings->setValue("visible", ui->threadOverview->isVisible());
-    settings->endGroup();
-
-    // Options
-    settings->beginGroup("options");
-    settings->endGroup();
+    settings.setThreadOverviewImagesWidth(ui->threadOverview->columnWidth(TOC_IMAGES_WIDTH));
+    settings.setThreadOverviewNameWidth(ui->threadOverview->columnWidth(TOC_NAME_WIDTH));
+    settings.setThreadOverviewStatusWidth(ui->threadOverview->columnWidth(TOC_STATUS_WIDTH));
+    settings.setThreadOverviewUriWidth(ui->threadOverview->columnWidth(TOC_URI_WIDTH));
+    settings.setThreadOverviewVisible(ui->threadOverview->isVisible());
 
     // Active tabs
-    settings->remove("tabs");   // Clean up
-    settings->sync();
+    settings.clearTabs();
+    settings.setTabsCount(ui->tabWidget->count());
+    for (int i = 0; i < ui->tabWidget->count(); i++) {
+      auto tab = getTabOverview(i);
+      settings.setTabValues(i, tab->getValues());
+    }
 
-    settings->beginGroup("tabs");
-        settings->setValue("count", ui->tabWidget->count());
+    settings.setDownloadedFilesStatistic(downloadManager->getStatisticsFiles());
+    settings.setDownloadedKBytesStatistic(downloadManager->getStatisticsKBytes());
 
-        for (int i=0; i<ui->tabWidget->count(); i++) {
-            settings->setValue(QString("tab%1").arg(i), ((UIImageOverview*)ui->tabWidget->widget(i))->getValues());
-        }
-    settings->endGroup();
+    settings.sync();
 
-    downloadManager->getStatistics(&downloadedFiles, &downloadedKB);
-    settings->beginGroup("statistics");
-        settings->setValue("downloaded_files", downloadedFiles);
-        settings->setValue("downloaded_kbytes", downloadedKB);
-    settings->endGroup();
-
-    settings->sync();
-
-    if (settings->status() == QSettings::NoError) {
+    if (settings.getStatus() == QSettings::NoError) {
         QLOG_INFO() << "MainWindow :: Settings saved successfully";
     }
     else {
         QLOG_ERROR() << "MainWindow :: Saving settings failed";
-        QLOG_ERROR() << "MainWindow ::  error: " << settings->status();
+        QLOG_ERROR() << "MainWindow ::  error: " << settings.getStatus();
     }
     emit settingsSaved();
 }
 
 void MainWindow::loadOptions(void) {
-    settings->beginGroup("options");
-        defaultDirectory = settings->value("default_directory", "").toString();
-        ui->tabWidget->setTabPosition((QTabWidget::TabPosition)settings->value("tab_position", 3).toInt());
-        autoClose = settings->value("automatic_close", false).toBool();
-        thumbnailSize.setWidth(settings->value("thumbnail_width", 200).toInt());
-        thumbnailSize.setHeight(settings->value("thumbnail_height", 200).toInt());
-        maxDownloads = settings->value("concurrent_downloads", 1).toInt();
 
-        updateWidgetSettings();
-        thumbnailCreator->setIconSize(QSize(settings->value("thumbnail_width",150).toInt(),settings->value("thumbnail_height",150).toInt()));
-    settings->endGroup();
+  defaultDirectory = settings.getDefaultDirectory();
+  ui->tabWidget->setTabPosition(static_cast<QTabWidget::TabPosition>(settings.getTabPosition()));
+  autoClose = settings.getAutoClose();
+  thumbnailSize = settings.getThumbnailSize();
+  maxDownloads = settings.getMaxDownloads();
 
-    settings->beginGroup("network");
-    QNetworkProxy proxy;
+  updateWidgetSettings();
 
-    if (settings->value("use_proxy", false).toBool()) {
-        proxy.setType((QNetworkProxy::ProxyType)(settings->value("proxy_type", QNetworkProxy::HttpProxy).toInt()));
-        proxy.setHostName(settings->value("proxy_hostname", "").toString());
-        proxy.setPort(settings->value("proxy_port", 0).toUInt());
-        if (settings->value("proxy_auth", false).toBool()) {
-            proxy.setUser(settings->value("proxy_user", "").toString());
-            proxy.setPassword(settings->value("proxy_pass", "").toString());
-        }
+  thumbnailCreator->setIconSize(settings.getThumbnailSize());
+
+
+  QNetworkProxy proxy;
+
+  if (settings.getNetworkUseProxy()) {
+    proxy.setType(static_cast<QNetworkProxy::ProxyType>(settings.getNetworkProxyType()));
+    proxy.setHostName(settings.getNetworkProxyHostName());
+    proxy.setPort(settings.getNetworkProxyPort());
+    if (settings.getNetworkProxyAuth()) {
+      proxy.setUser(settings.getNetworkProxyUser());
+      proxy.setPassword(settings.getNetworkProxyPass());
     }
-    else {
-        proxy.setType(QNetworkProxy::NoProxy);
-    }
+  }
+  else {
+    proxy.setType(QNetworkProxy::NoProxy);
+  }
 
-    QNetworkProxy::setApplicationProxy(proxy);
+  QNetworkProxy::setApplicationProxy(proxy);
 
-    settings->endGroup();
-
-    // Dock widget
-    settings->beginGroup("thread_overview");
-//    ui->dockWidget->resize();
-//    settings->setValue("width", ui->dockWidget->width());
-    ui->threadOverview->setColumnWidth(3, settings->value("col_uri_width", 170).toInt());
-    ui->threadOverview->setColumnWidth(0, settings->value("col_name_width", 190).toInt());
-    ui->threadOverview->setColumnWidth(1, settings->value("col_images_width", 60).toInt());
-    ui->threadOverview->setColumnWidth(2, settings->value("col_status_width", 70).toInt());
-    settings->endGroup();
+  // Dock widget
+  ui->threadOverview->setColumnWidth(TOC_IMAGES_WIDTH, settings.getThreadOverviewImagesWidth());
+  ui->threadOverview->setColumnWidth(TOC_NAME_WIDTH, settings.getThreadOverviewNameWidth());
+  ui->threadOverview->setColumnWidth(TOC_STATUS_WIDTH, settings.getThreadOverviewStatusWidth());
+  ui->threadOverview->setColumnWidth(TOC_URI_WIDTH, settings.getThreadOverviewUriWidth());
 }
 
 void MainWindow::processCloseRequest(UIImageOverview* w, int reason) {
@@ -414,7 +376,7 @@ void MainWindow::processCloseRequest(UIImageOverview* w, int reason) {
 
     QLOG_TRACE() << __func__ << "i: " << i << ", reason " << reason;
     if (reason == 404) {
-        if (settings->value("options/automatic_close", false).toBool()) {
+        if (settings.getAutoClose()) {
             closeTab(i);
         }
     }
@@ -902,7 +864,7 @@ void MainWindow::createComponentList() {
         c.filename = CONSOLE_APPNAME;
         c.componentName = "Console";
         c.type = "executable";
-        c.version = settings->value("console/version", "0.1.0").toString();
+        c.version = settings.getConsoleVersion();
         components.insert(QString("%1:%2").arg(c.type).arg(c.filename), c);
     }
 
@@ -911,13 +873,13 @@ void MainWindow::createComponentList() {
     c.filename = "upd4t3r.exe";
     c.componentName = "Updater";
     c.type = "executable";
-    version = settings->value("updater/version", "unknown").toString();
+    version = settings.getUpdaterVersion();
 
     if (version == "unknown" && c.filename.contains("upd4t3r")) {
         // No version information in settings file, but new updater executable present
         // means a freshly updated system. Assume version 1.1
         version = "1.2";
-        settings->setValue("updater/version", version);
+        settings.setUpdaterVersion(version);
     }
 
     c.version = version;
@@ -1003,7 +965,7 @@ QList<component_information> MainWindow::getComponents() {
 }
 
 void MainWindow::setUpdaterVersion(QString v) {
-    settings->setValue("updater/version", v);
+  settings.setUpdaterVersion(v);
 }
 
 void MainWindow::updateDownloadProgress() {
@@ -1045,7 +1007,7 @@ void MainWindow::createTrayActions()
 void MainWindow::createTrayIcon() {
     trayIcon = new QSystemTrayIcon(this);
 
-    if (QSystemTrayIcon::isSystemTrayAvailable() && settings->value("options/close_to_tray", false).toBool()) {
+    if (QSystemTrayIcon::isSystemTrayAvailable() && settings.getCloseToTray()) {
         createTrayActions();
 
         trayIconMenu = new QMenu(this);
@@ -1065,7 +1027,7 @@ void MainWindow::createTrayIcon() {
 }
 
 void MainWindow::removeTrayIcon() {
-    if (QSystemTrayIcon::isSystemTrayAvailable() && settings->value("options/close_to_tray", false).toBool() && trayIcon) {
+    if (QSystemTrayIcon::isSystemTrayAvailable() && settings.getCloseToTray() && trayIcon) {
         trayIcon->hide();
     }
 }
@@ -1127,8 +1089,8 @@ void MainWindow::cleanThreadCache() {
     QString cacheFile;
     QDir dir;
 
-    if (settings->value("download_manager/use_thread_cache", false).toBool()) {
-        cacheFolder = settings->value("download_manager/thread_cache_path", "").toString();
+    if (settings.getUseThreadCache()) {
+        cacheFolder = settings.getThreadCachePath();
 
         if (!cacheFolder.isEmpty()) {
             dir.setPath(cacheFolder);

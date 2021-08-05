@@ -1,6 +1,8 @@
 #ifndef APPLICATIONUPDATEINTERFACE_H
 #define APPLICATIONUPDATEINTERFACE_H
 
+#include <memory>
+
 #include <QObject>
 #include <QCoreApplication>
 #include <QByteArray>
@@ -13,6 +15,7 @@
 #include <QMessageBox>
 #endif
 
+#include "appsettings.h"
 #include "../updater/commands.h"
 #include "defines.h"
 #include "QsLog.h"
@@ -36,7 +39,7 @@ private:
     QString version;
     QString fileToMoveFrom, fileToMoveTo;
     QHash<QString,QString> filesToMove;
-    QSettings* settings;
+    chandl::AppSettings settings;
 
     void processCommand(QByteArray a);
     void writeCommand(int c, QByteArray a);

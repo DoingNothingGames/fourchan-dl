@@ -32,8 +32,7 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>5.15.2_msvc2019_64</QtInstall>
-    <QtModules>
-    </QtModules>
+    <QtModules>core;network;widgets</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
@@ -100,6 +99,7 @@
     <ClCompile Include="..\updater\commands.cpp" />
     <ClCompile Include="application.cpp" />
     <ClCompile Include="applicationupdateinterface.cpp" />
+    <ClCompile Include="appsettings.cpp" />
     <ClCompile Include="blacklist.cpp" />
     <ClCompile Include="dialogfoldershortcut.cpp" />
     <ClCompile Include="downloadmanager.cpp" />
@@ -135,6 +135,7 @@
     <ClInclude Include="..\updater\commands.h" />
     <QtMoc Include="applicationupdateinterface.h" />
     <QtMoc Include="application.h" />
+    <ClInclude Include="appsettings.h" />
     <ClInclude Include="defines.h" />
     <ClInclude Include="ecwin7.h" />
     <ClInclude Include="HtmlEntities.h" />

@@ -1,3 +1,5 @@
+
+#include "appsettings.h"
 #include "blacklist.h"
 
 BlackList::BlackList(QObject *parent) :
@@ -6,7 +8,6 @@ BlackList::BlackList(QObject *parent) :
     timer = new QTimer();
     manager = new QNetworkAccessManager();
     blackListFile = new QFile("black.list");
-    settings = new QSettings("settings.ini", QSettings::IniFormat);
 
     list.clear();
 
@@ -92,8 +93,10 @@ void BlackList::replyFinished(QNetworkReply* r) {
 }
 
 void BlackList::loadSettings() {
-    useBlackList = settings->value("blacklist/use_blacklist", true).toBool();
-    interval = settings->value("blacklist/blacklist_check_interval", 600).toInt();
+    chandl::AppSettings settings;
+
+    useBlackList = settings.getUseBlackList();
+    interval = settings.getBlackListCheckInverval();
     interval *= 1000;
 
     timer->stop();

@@ -6,6 +6,7 @@
 #include <QDateTime>
 #include <QThread>
 
+#include "appsettings.h"
 #include "application.h"
 
 namespace chandl {
@@ -37,7 +38,7 @@ namespace chandl {
 
   Application::Application(int& argc, char* argv[])
     : QApplication(argc, argv) {
-    QSettings settings("settings.ini", QSettings::IniFormat);
+    AppSettings settings;
     int logLevel;
 
     //#if QT_VERSION >= 0x050000
@@ -67,9 +68,9 @@ namespace chandl {
     logger.setLoggingLevel(QsLogging::WarnLevel);
 #endif
 
-    logLevel = settings.value("options/log_level", -1).toInt();
+    logLevel = settings.getLogLevel();
     if (logLevel != -1) {
-      logger.setLoggingLevel((QsLogging::Level)logLevel);
+      logger.setLoggingLevel(static_cast<QsLogging::Level>(logLevel));
       QLOG_ALWAYS() << "APP :: Setting logging level to " << logLevel;
     }
 

@@ -6,6 +6,8 @@
 #include <QUrl>
 #include <QtNetwork>
 #include <QSettings>
+
+#include "appsettings.h"
 #include "requesthandler.h"
 #include "supervisednetworkreply.h"
 #include "downloadrequest.h"
@@ -25,7 +27,10 @@ public:
     void freeRequest(qint64);
     void removeRequest(qint64);
     qint64 requestDownload(RequestHandler* caller, QUrl url, int prio=0);
-    void getStatistics(int* files, float* kbytes);
+
+    int getStatisticsFiles() const;
+    float getStatisticsKBytes() const;
+
     int getPendingRequests();
     int getRunningRequests();
     int getTotalRequests();
@@ -45,7 +50,7 @@ private:
     QHash<qint64, QNetworkReply*> activeReplies;
     QHash<qint64, SupervisedNetworkReply*> supervisors;
     QMultiMap<int, qint64> priorities;
-    QSettings* settings;
+    chandl::AppSettings settings;
     QTimer* waitTimer;
     NetworkAccessManager* getFreeNAM();
 //    QNetworkAccessManager* _manager;

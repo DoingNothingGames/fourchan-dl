@@ -8,6 +8,7 @@
 #include <QTreeWidget>
 #include <QSystemTrayIcon>
 #include <QThread>
+
 #include "uiimageoverview.h"
 #include "uiinfo.h"
 #include "uiconfig.h"
@@ -19,6 +20,7 @@
 #include "uithreadadder.h"
 #include "thumbnailremover.h"
 #include "QsLog.h"
+#include "appsettings.h"
 
 class UIImageViewer;
 class UIImageOverview;
@@ -31,7 +33,6 @@ namespace Ui {
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
 public:
     explicit MainWindow(std::shared_ptr<DownloadManager> downloadManager_, 
       std::shared_ptr<ThumbnailCreator> thumbnailCreator_, 
@@ -40,16 +41,18 @@ public:
       QString updaterFileName_,
       QWidget *parent = 0);
     ~MainWindow();
+
     void restoreTabs();
     bool threadExists(QString url);
     QList<component_information> getComponents();
 
 private:
+    chandl::AppSettings settings;
+
     Ui::MainWindow *ui;
     QList<UIImageOverview> widgetList;
     QMap<QString, QString> historyList;
     QString defaultDirectory;
-    QSettings* settings;
     UIConfig* uiConfig;
     UIInfo* uiInfo;
     UIThreadAdder* threadAdder;
@@ -112,8 +115,6 @@ protected:
 
 private slots:
     void saveSettings(void);
-    int addTab();
-    int addForegroundTab();
     void addMultipleTabs();
     void closeTab(int);
     void displayError(QString);
@@ -123,7 +124,7 @@ private slots:
     void setDefaultDirectory(QString);
     void loadOptions(void);
     void processCloseRequest(UIImageOverview*, int);
-    void createTab(QString);
+    void createTab(QString values);
     void startAll(void);
     void pauseAll(void);
     void stopAll(void);
@@ -155,6 +156,18 @@ signals:
     void removeFiles(QStringList);
     void quitAll();
     void settingsSaved();
+
+private:
+  enum ThreadOverviewColumn {
+    TOC_NAME_WIDTH = 0,
+    TOC_IMAGES_WIDTH = 1,
+    TOC_STATUS_WIDTH = 2,
+    TOC_URI_WIDTH = 3,
+  };
+
+  QPointer<UIImageOverview> addTab();
+  QPointer<UIImageOverview> addForegroundTab();
+  QPointer<UIImageOverview> getTabOverview(int index);
 };
 
 #endif // MAINWINDOW_H

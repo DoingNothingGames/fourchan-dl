@@ -63,10 +63,8 @@ void UIInfo::updateStatistics() {
 
     sizePostfix << "KB" << "MB" << "GB" << "TB";
 
-    files = 0;
-    kbyte = 0;
-
-    downloadManager->getStatistics(&files, &kbyte);
+    files = downloadManager->getStatisticsFiles();
+    kbyte = downloadManager->getStatisticsKBytes();
 
     for (idx=0; idx<sizePostfix.size(); idx++) {
         if (kbyte>1024.0) {

@@ -3,7 +3,6 @@
 FolderShortcuts::FolderShortcuts(QObject *parent) :
     QObject(parent)
 {
-    settings = new QSettings("settings.ini", QSettings::IniFormat);
     loadSettings();
 }
 
@@ -65,7 +64,7 @@ void FolderShortcuts::loadSettings() {
     QStringList sl;
     QStringList temp;
 
-    sl = settings->value("shortcuts", "").toStringList();
+    sl = settings.getShortcuts();
 
     foreach (QString s, sl) {
         temp = s.split("=>");
@@ -85,5 +84,5 @@ void FolderShortcuts::saveSettings() {
     for(i=_shortcuts.begin(); i!= _shortcuts.end(); ++i)
         s << QString("%1=>%2").arg(i.key()).arg(i.value());
 
-    settings->setValue("shortcuts", s);
+    settings.setShortcuts(s);
 }
