@@ -41,8 +41,8 @@ DownloadManager::DownloadManager(QObject *parent) :
 }
 
 void DownloadManager::loadSettings() {
-  maxRequests = settings.getConcurrentDownloads();
-  initialTimeout = settings.getInitialTimeout() * 1000;
+  maxRequests = settings.getManagerConcurrentDownloads();
+  initialTimeout = settings.getManagerInitialTimeout() * 1000;
   runningTimeout = settings.getRunningTimeout() * 1000;
   _useThreadCache = settings.getUseThreadCache(); 
   _threadCachePath = settings.getThreadCachePath();

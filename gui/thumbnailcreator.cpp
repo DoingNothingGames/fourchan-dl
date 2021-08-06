@@ -12,8 +12,6 @@
 ThumbnailCreator::ThumbnailCreator() :
   QThread(nullptr)
 {
-  iconSize = new QSize(100, 100);
-  settings = new QSettings("settings.ini", QSettings::IniFormat);
 }
 
 void ThumbnailCreator::run() {
@@ -44,15 +42,14 @@ void ThumbnailCreator::run() {
     bool useCachedThumbnail = false;
     bool image_loaded = false;
 
-    int iconWidth = iconSize->width();
-    int iconHeight = iconSize->height();
+    int iconWidth = iconSize.width();
+    int iconHeight = iconSize.height();
 
-    bool enlargeThumbnails = settings->value("options/enlarge_thumbnails", false).toBool();
-    bool hqRendering = settings->value("options/hq_thumbnails", false).toBool();
+    bool enlargeThumbnails = settings.getEnlargeThumbnails();
+    bool hqRendering = settings.getHQThumbnails();
     auto useCache = true;
 
-    auto cacheFolder = settings->value("options/thumbnail_cache_folder", QString("%1/%2").arg(QCoreApplication::applicationDirPath())
-      .arg("tncache")).toString();
+    auto cacheFolder = settings.getThumbnailCacheFolder();
 
     //        QLOG_ALWAYS() << "ThumbnailCreator :: Using thumbnail folder " << cacheFolder;
     if (useCache && !(dir.exists(cacheFolder))) {
@@ -102,10 +99,10 @@ void ThumbnailCreator::run() {
           QLOG_TRACE() << "ThumbnailCreator :: Rendering thumbnail";
 
           if (hqRendering) {
-            tn = original.scaled(*iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            tn = original.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
           }
           else {
-            tn = original.scaled(*iconSize, Qt::KeepAspectRatio, Qt::FastTransformation);
+            tn = original.scaled(iconSize, Qt::KeepAspectRatio, Qt::FastTransformation);
           }
         }
 
@@ -132,8 +129,7 @@ ThumbnailCreator::~ThumbnailCreator() {
 
 void ThumbnailCreator::setIconSize(QSize s) {
   mutex.lock();
-  iconSize->setWidth(s.width());
-  iconSize->setHeight(s.height());
+  iconSize = s;
   mutex.unlock();
 }
 
@@ -155,8 +151,7 @@ QString ThumbnailCreator::addToList(QString s) {
 QString ThumbnailCreator::getCacheFile(QString filename) {
   QString tmp, ret;
 
-  auto cacheFolder = settings->value("options/thumbnail_cache_folder", QString("%1/%2").arg(QCoreApplication::applicationDirPath())
-    .arg("tncache")).toString();
+  auto cacheFolder = settings.getThumbnailCacheFolder();
 
   tmp = filename;
   tmp.replace(QRegExp("[" + QRegExp::escape("\\/:*?\"<>|") + "]"), QString("_"));

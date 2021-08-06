@@ -10,7 +10,6 @@ UIImageViewer::UIImageViewer(QWidget *parent) :
     imagesToDisplay.clear();
     currentImage = -1;
     rotation = 0;
-    settings = new QSettings("settings.ini", QSettings::IniFormat);
     runSlideshow = false;
     slideshowTimer = new QTimer(this);
     slideshowTimer->setSingleShot(false);
@@ -185,17 +184,12 @@ void UIImageViewer::openWithExternalViewer() {
 
 void UIImageViewer::loadSettings() {
     // Restore window position
-    QPoint p;
-    QSize s;
-    int state;
+    QPoint p = settings.getViewerPosition();
+    QSize s = settings.getViewerSize();
+    int state = settings.getViewerState();
 
-    settings->beginGroup("imageviewer");
-        p = settings->value("position",QPoint(0,0)).toPoint();
-        state = settings->value("state",0).toInt();
-        s = settings->value("size",QSize(0,0)).toSize();
-        ui->btnFitImage->setChecked(settings->value("fit_image", false).toBool());
-        ui->sbSlideshowPause->setValue(settings->value("slideshow_pause", 3).toInt());
-    settings->endGroup();
+    ui->btnFitImage->setChecked(settings.getViewerFitImage());
+    ui->sbSlideshowPause->setValue(settings.getViewerSlideshowPause());
 
     if (p != QPoint(0,0))
         this->move(p);
@@ -208,16 +202,14 @@ void UIImageViewer::loadSettings() {
 }
 
 void UIImageViewer::saveSettings() {
-    settings->beginGroup("imageviewer");
-        settings->setValue("position", this->pos());
-        if (this->windowState() == Qt::WindowNoState)
-            settings->setValue("size", this->size());
-        settings->setValue("state", QString("%1").arg(this->windowState()));
-        settings->setValue("fit_image", ui->btnFitImage->isChecked());
-        settings->setValue("slideshow_pause", ui->sbSlideshowPause->value());
-    settings->endGroup();
+  settings.setViewerPosition(this->pos());
+  if (this->windowState() == Qt::WindowNoState)
+    settings.setViewerSize(this->size());
+  settings.setViewerState(static_cast<int>(this->windowState()));
+  settings.setViewerFitImage(ui->btnFitImage->isChecked());
+  settings.setViewerSlideshowPause(ui->sbSlideshowPause->value());
 
-    settings->sync();
+  settings.sync();
 }
 
 void UIImageViewer::transformPixmap() {

@@ -10,7 +10,6 @@ UIThreadAdder::UIThreadAdder(
 {
     ui->setupUi(this);
     clipboard = QApplication::clipboard();
-    settings = new QSettings("settings.ini", QSettings::IniFormat);
 
 //    connect(clipboard, SIGNAL(changed(QClipboard::Mode))), this, SLOT(checkClipboard(QClipboard::Mode));
     connect(clipboard, SIGNAL(dataChanged()), this, SLOT(checkClipboard()));
@@ -185,7 +184,7 @@ void UIThreadAdder::loadSettings() {
     QStringList sl;
     int index, defaultTimeout;
 
-    sl = settings->value("options/timeout_values", (QStringList()<<"300"<<"600")).toStringList();
+    sl = settings.getTimeoutValues();
 
     ui->comboBox->clear();
 
@@ -225,7 +224,7 @@ void UIThreadAdder::loadSettings() {
         ui->comboBox->addItem(QString("every %1 %2").arg(value).arg(text), i);
     }
 
-    defaultTimeout = settings->value("options/default_timeout",0).toInt();
+    defaultTimeout = settings.getDefaultTimeout();
     index = ui->comboBox->findData(defaultTimeout);
     if (index != -1) ui->comboBox->setCurrentIndex(index);
 
@@ -238,8 +237,8 @@ void UIThreadAdder::loadSettings() {
         ui->cbRescan->setChecked(true);
     }
 
-    ui->leSavepath->setText(settings->value("options/default_directory","").toString());
-    ui->cbOriginalFilename->setChecked(settings->value("options/default_original_filename", false).toBool());
+    ui->leSavepath->setText(settings.getDefaultDirectory());
+    ui->cbOriginalFilename->setChecked(settings.getDefaultOriginalFilename());
 }
 
 void UIThreadAdder::selectShortcutIndex(int idx) {

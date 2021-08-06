@@ -11,6 +11,8 @@
 #include <QFileInfoList>
 #include <QtDebug>
 #include <QDateTime>
+
+#include "appsettings.h"
 #include "QsLog.h"
 
 class ThumbnailRemover : public QObject
@@ -21,7 +23,7 @@ public:
     void stop();
 
 private:
-    QSettings* settings;
+  chandl::AppSettings settings;
     int ttl;
     QString dirName;
     QDir dir;

@@ -5,6 +5,8 @@
 #include <QSettings>
 #include <QListWidgetItem>
 
+#include "appsettings.h"
+
 namespace Ui {
     class UIListEditor;
 }
@@ -20,7 +22,7 @@ public:
 
 private:
     Ui::UIListEditor *ui;
-    QSettings* settings;
+    chandl::AppSettings settings;
 
     void saveSettings(void);
 

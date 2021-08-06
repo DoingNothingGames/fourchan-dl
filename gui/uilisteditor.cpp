@@ -7,7 +7,6 @@ UIListEditor::UIListEditor(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    settings = new QSettings("settings.ini", QSettings::IniFormat);
     loadSettings();
 
     connect(ui->listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(editItem(QListWidgetItem*)));
@@ -65,7 +64,7 @@ void UIListEditor::sortList() {
 void UIListEditor::loadSettings() {
     QStringList sl;
 
-    sl = settings->value("options/timeout_values", (QStringList()<<"300"<<"600")).toStringList();
+    sl = settings.getTimeoutValues();
     ui->listWidget->clear();
     ui->listWidget->addItems(sl);
 
@@ -81,7 +80,7 @@ void UIListEditor::saveSettings() {
         sl << ui->listWidget->item(i)->text();
     }
 
-    settings->setValue("options/timeout_values", sl);
+    settings.setTimeoutValues(sl);
 }
 
 UIListEditor::~UIListEditor()

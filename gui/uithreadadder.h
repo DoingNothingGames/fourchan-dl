@@ -8,6 +8,8 @@
 #include <QtDebug>
 #include <QFileDialog>
 #include <QSettings>
+
+#include "appsettings.h"
 #include "foldershortcuts.h"
 
 namespace Ui {
@@ -25,7 +27,7 @@ public:
 private:
     Ui::UIThreadAdder *ui;
     QClipboard* clipboard;
-    QSettings* settings;
+    chandl::AppSettings settings;
     QList<int> timeoutValues;
     std::shared_ptr<FolderShortcuts> folderShortcuts;
 

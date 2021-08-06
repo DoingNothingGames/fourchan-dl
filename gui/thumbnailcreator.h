@@ -11,6 +11,8 @@
 #include <QWaitCondition>
 #include <QThread>
 
+#include "appsettings.h"
+
 class ThumbnailCreator : public QThread
 {
   Q_OBJECT
@@ -28,12 +30,12 @@ public:
 
 private:
   QStringList list;
-  QSize* iconSize = nullptr;
+  QSize iconSize = QSize(100, 100);
   QAtomicInt stopped = false;
   QAtomicInt paused = false;
-  QSettings* settings = nullptr;
   QMutex mutex;
   QWaitCondition condition;
+  chandl::AppSettings settings;
 
 signals:
   void pendingThumbnails(int);

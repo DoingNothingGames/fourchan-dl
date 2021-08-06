@@ -4,6 +4,8 @@
 #include <QDialog>
 #include <QSettings>
 #include <QFileDialog>
+
+#include "appsettings.h"
 #include "uilisteditor.h"
 #include "dialogfoldershortcut.h"
 #include "foldershortcuts.h"
@@ -22,8 +24,8 @@ public:
     ~UIConfig();
 
 private:
+  chandl::AppSettings settings;
     Ui::UIConfig *ui;
-    QSettings* settings;
     UIListEditor* timeoutValueEditor;
     DialogFolderShortcut* dialogFolderShortcut;
     bool _removing_thumbnails;

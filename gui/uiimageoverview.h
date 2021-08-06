@@ -11,6 +11,7 @@
 #include <QImage>
 #include <QCloseEvent>
 #include <QThread>
+
 #include "defines.h"
 #include "mainwindow.h"
 #include "thumbnailcreator.h"
@@ -21,6 +22,7 @@
 #include "requesthandler.h"
 #include "uiimageviewer.h"
 #include "HtmlEntities.h"
+#include "appsettings.h"
 
 class ThumbnailCreator;
 class MainWindow;
@@ -68,7 +70,7 @@ private:
     QAction* deleteFileAction;
     QAction* reloadFileAction;
     QAction* openFileAction;
-    QSettings* settings;
+    chandl::AppSettings settings;
     QStringList pendingThumbnails;
     QMap<QString,QString> missingThumbs;
 

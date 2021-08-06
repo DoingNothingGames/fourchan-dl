@@ -35,7 +35,6 @@ UIImageOverview::UIImageOverview(
 #endif
 
     timer = new QTimer(this);
-    settings = new QSettings("settings.ini", QSettings::IniFormat);
 
     thumbnailCheckTimer = new QTimer(this);
     thumbnailCheckTimer->setInterval(5000+time.msec());
@@ -412,7 +411,7 @@ void UIImageOverview::openFile(void) {
 
     filename = ui->listWidget->currentItem()->text();
     if (filename != "") {
-        if (settings->value("options/use_internal_viewer", false).toBool()) {
+        if (settings.getUseInternalViewer()) {
             for (int i=0; i<images.length(); i++) {
                 if ((images.at(i).downloaded) && !blackList->contains(images.at(i).largeURI)) {
                     slImageList << images.at(i).savedAs;
@@ -579,7 +578,7 @@ void UIImageOverview::loadSettings() {
     QStringList sl;
     int index, defaultTimeout;
 
-    sl = settings->value("options/timeout_values", (QStringList()<<"300"<<"600")).toStringList();
+    sl = settings.getTimeoutValues();
 
     ui->comboBox->clear();
 
@@ -619,7 +618,7 @@ void UIImageOverview::loadSettings() {
         ui->comboBox->addItem(QString("every %1 %2").arg(value).arg(text), i);
     }
 
-    defaultTimeout = settings->value("options/default_timeout",0).toInt();
+    defaultTimeout = settings.getDefaultTimeout();
     index = ui->comboBox->findData(defaultTimeout);
     if (index != -1) ui->comboBox->setCurrentIndex(index);
 
@@ -632,13 +631,14 @@ void UIImageOverview::loadSettings() {
         ui->cbRescan->setChecked(true);
     }
 
-    setDirectory(settings->value("options/default_directory","").toString());
-    useOriginalFilenames(settings->value("options/default_original_filename", false).toBool());
+    setDirectory(settings.getDefaultDirectory());
+    useOriginalFilenames(settings.getDefaultOriginalFilename());
+
     updateSettings();
 }
 
 void UIImageOverview::updateSettings() {
-    setThumbnailSize(QSize(settings->value("options/thumbnail_width",150).toInt(),settings->value("options/thumbnail_height",150).toInt()));
+    setThumbnailSize(settings.getThumbnailSize());
 }
 
 void UIImageOverview::useOriginalFilenames(bool b) {
@@ -901,7 +901,7 @@ void UIImageOverview::processRequestResponse(QUrl url, QByteArray ba, bool cache
                         emit createTabRequest(newTab.join(";;"));
                     }
 
-                    if (settings->value("options/close_overview_threads", true).toBool()) {
+                    if (settings.getCloseOverviewThreads()) {
                         emit closeRequest(this, 0);
                     }
                     else {
@@ -1274,7 +1274,7 @@ void UIImageOverview::updateExpectedThumbnailCount() {
 void UIImageOverview::showImagePreview() {
     QStringList slImageList;
 
-    if (settings->value("options/use_internal_viewer", false).toBool()) {
+    if (settings.getUseInternalViewer()) {
         for (int i=0; i<images.length(); i++) {
             if ((images.at(i).downloaded) && !blackList->contains(images.at(i).largeURI)) {
                 slImageList << images.at(i).savedAs;

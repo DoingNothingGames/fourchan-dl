@@ -9,6 +9,8 @@
 #include <QSettings>
 #include <QMovie>
 #include <QTimer>
+
+#include "appsettings.h"
 #include "QsLog.h"
 
 namespace Ui {
@@ -27,6 +29,7 @@ public:
     void setCurrentImage(QString filename);
 
 private:
+  chandl::AppSettings settings;
     Ui::UIImageViewer *ui;
     QStringList imagesToDisplay;
     int currentImage;
@@ -35,7 +38,6 @@ private:
     int rotation;
     QTimer* slideshowTimer;
     bool runSlideshow;
-    QSettings* settings;
 
     void loadImage(int);
     void loadSettings();

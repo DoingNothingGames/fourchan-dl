@@ -78,6 +78,120 @@ namespace chandl {
     settings.setValue("options/concurrent_downloads", value);
   }
 
+  bool AppSettings::getEnlargeThumbnails(bool def) const
+  {
+    return settings.value("options/enlarge_thumbnails", def).toBool();
+  }
+
+  void AppSettings::setEnlargeThumbnails(bool value)
+  {
+    settings.setValue("options/enlarge_thumbnails", value);
+  }
+
+  bool AppSettings::getHQThumbnails(bool def) const
+  {
+    return settings.value("options/hq_thumbnails", def).toBool();
+  }
+
+  void AppSettings::setHQThumbnails(bool value)
+  {
+    settings.setValue("options/hq_thumbnails", value);
+  }
+
+  QString AppSettings::getThumbnailCacheFolder(QString def) const
+  {
+    if (def.isEmpty())
+      def = QString("%1/%2").arg(QCoreApplication::applicationDirPath()).arg("tncache");
+    return settings.value("options/thumbnail_cache_folder", def).toString();
+  }
+
+  void AppSettings::setThumbnailCacheFolder(QString value)
+  {
+    settings.setValue("options/thumbnail_cache_folder", value);
+  }
+
+  int AppSettings::getThumbnailTTL(int def) const
+  {
+    return settings.value("options/thumbnail_TTL", def).toInt();
+  }
+
+  void AppSettings::setThumbnailTTL(int value)
+  {
+    settings.value("options/thumbnail_TTL", value);
+  }
+
+  bool AppSettings::getDefaultOriginalFilename(bool def) const
+  {
+    return settings.value("options/default_original_filename", def).toBool();
+  }
+
+  void AppSettings::setDefaultOriginalFilename(bool value)
+  {
+    settings.setValue("options/default_original_filename", value);
+  }
+
+  bool AppSettings::getCloseOverviewThreads(bool def) const
+  {
+    return settings.value("options/close_overview_threads", def).toBool();
+  }
+
+  void AppSettings::setCloseOverviewThreads(bool value)
+  {
+    settings.setValue("options/close_overview_threads", value);
+  }
+
+  bool AppSettings::getUseInternalViewer(bool def) const
+  {
+    return settings.value("options/use_internal_viewer", def).toBool();
+  }
+
+  void AppSettings::setUseInternalViewer(bool value)
+  {
+    settings.setValue("options/use_internal_viewer", value);
+  }
+
+  int AppSettings::getConcurrentDownloads(int def) const
+  {
+    return settings.value("options/concurrent_downloads", def).toInt();
+  }
+
+  void AppSettings::setConcurrentDownloads(int value)
+  {
+    settings.setValue("options/concurrent_downloads", value);
+  }
+
+  int AppSettings::getResheduleInterval(int def) const
+  {
+    return settings.value("options/reschedule_interval", def).toInt();
+  }
+
+  void AppSettings::setResheduleInterval(int value)
+  {
+    settings.setValue("options/reschedule_interval", value);
+  }
+
+  QStringList AppSettings::getTimeoutValues(QStringList def) const
+  {
+    if (def.empty())
+      def = QStringList() << "300" << "600";
+    return settings.value("options/timeout_values", def).toStringList();
+  }
+
+  void AppSettings::setTimeoutValues(QStringList values)
+  {
+    settings.setValue("options/timeout_values", values);
+  }
+
+  int AppSettings::getDefaultTimeout(int def) const
+  {
+    return settings.value("options/default_timeout", def).toInt();
+  }
+
+  void AppSettings::setDefaultTimeout(int value)
+  {
+    settings.value("options/default_timeout", value);
+  }
+
   bool AppSettings::getNetworkUseProxy(bool def) const
   {
     return settings.value("network/use_proxy", def).toBool();
@@ -162,14 +276,30 @@ namespace chandl {
   {
     return settings.value("options/log_level", def).toInt();
   }
+
+  void AppSettings::setLogLevel(int value)
+  {
+    settings.setValue("options/log_level", value);
+  }
+
   int AppSettings::getUpdaterPort(int def) const
   {
     return settings.value("updater/updater_port", def).toInt();
   }
 
+  void AppSettings::setUpdaterPort(int value)
+  {
+    settings.setValue("updater/updater_port", value);
+  }
+
   int AppSettings::getUpdaterAppPort(int def) const
   {
     return settings.value("updater/application_port", def).toInt();
+  }
+
+  void AppSettings::setUpdaterAppPort(int value)
+  {
+    settings.setValue("updater/application_port", value);
   }
 
   QString AppSettings::getUpdaterVersion(QString def) const
@@ -187,19 +317,39 @@ namespace chandl {
     return settings.value("blacklist/use_blacklist", def).toBool();
   }
 
+  void AppSettings::setUseBlackList(bool value)
+  {
+    settings.setValue("blacklist/use_blacklist", value);
+  }
+
   int AppSettings::getBlackListCheckInverval(int def) const
   {
     return settings.value("blacklist/blacklist_check_interval", def).toInt();
   }
 
-  int AppSettings::getConcurrentDownloads(int def) const
+  void AppSettings::setBlackListCheckInverval(int value)
+  {
+    settings.setValue("blacklist/blacklist_check_interval", value);
+  }
+
+  int AppSettings::getManagerConcurrentDownloads(int def) const
   {
     return settings.value("download_manager/concurrent_downloads", def).toInt();
   }
 
-  int AppSettings::getInitialTimeout(int def) const
+  void AppSettings::setManagerConcurrentDownloads(int value)
+  {
+    settings.setValue("download_manager/concurrent_downloads", value);
+  }
+
+  int AppSettings::getManagerInitialTimeout(int def) const
   {
     return settings.value("download_manager/initial_timeout", def).toInt();
+  }
+
+  void AppSettings::setManagerInitialTimeout(int value)
+  {
+    settings.setValue("download_manager/initial_timeout", value);
   }
 
   int AppSettings::getRunningTimeout(int def) const
@@ -207,9 +357,19 @@ namespace chandl {
     return settings.value("download_manager/running_timeout", def).toInt();
   }
 
+  void AppSettings::setRunningTimeout(int value)
+  {
+    settings.setValue("download_manager/running_timeout", value);
+  }
+
   bool AppSettings::getUseThreadCache(bool def) const
   {
     return settings.value("download_manager/use_thread_cache", def).toBool();
+  }
+
+  void AppSettings::setUseThreadCache(bool value)
+  {
+    settings.setValue("download_manager/use_thread_cache", value);
   }
 
   QString AppSettings::getThreadCachePath(QString def) const
@@ -217,6 +377,11 @@ namespace chandl {
     if (def.isEmpty())
       def = QString("%1/%2").arg(QCoreApplication::applicationDirPath()).arg("thread-cache");
     return settings.value("download_manager/thread_cache_path", def).toString();
+  }
+
+  void AppSettings::setThreadCachePath(QString value)
+  {
+    settings.setValue("download_manager/thread_cache_path", value);
   }
 
   int AppSettings::getDownloadedFilesStatistic(int def) const
@@ -244,11 +409,21 @@ namespace chandl {
     return settings.value("download_manager/compress_cache_file", def).toBool();
   }
 
+  void AppSettings::setCompressCacheFile(bool value)
+  {
+    settings.setValue("download_manager/compress_cache_file", value);
+  }
+
   QString AppSettings::getUserAgent(QString def) const
   {
     if (def.isEmpty())
       def = "Wget/1.12";
     return settings.value("options/user-agent", def).toString();
+  }
+
+  void AppSettings::setUserAgent(QString value)
+  {
+    settings.setValue("options/user-agent", value);
   }
 
   QStringList AppSettings::getShortcuts(QStringList def) const
@@ -264,6 +439,11 @@ namespace chandl {
   bool AppSettings::getRememberDirectory(bool def) const
   {
     return settings.value("options/remember_directory", def).toBool();
+  }
+
+  void AppSettings::setRememberDirectory(bool value)
+  {
+    settings.setValue("options/remember_directory", value);
   }
 
   QPoint AppSettings::getWindowPosition(QPoint def) const
@@ -304,6 +484,56 @@ namespace chandl {
   void AppSettings::setWindowWidgetState(QByteArray value)
   {
     settings.setValue("window/widgetstate", value);
+  }
+
+  QPoint AppSettings::getViewerPosition(QPoint def) const
+  {
+    return settings.value("imageviewer/position", def).toPoint();
+  }
+
+  void AppSettings::setViewerPosition(QPoint value)
+  {
+    settings.setValue("imageviewer/position", value);
+  }
+
+  int AppSettings::getViewerState(int def) const
+  {
+    return settings.value("imageviewer/state", def).toInt();
+  }
+
+  void AppSettings::setViewerState(int value)
+  {
+    settings.setValue("imageviewer/state", value);
+  }
+
+  QSize AppSettings::getViewerSize(QSize def) const
+  {
+    return settings.value("imageviewer/size", def).toSize();
+  }
+
+  void AppSettings::setViewerSize(QSize value)
+  {
+    settings.setValue("imageviewer/size", value);
+  }
+
+  bool AppSettings::getViewerFitImage(bool def) const
+  {
+    return settings.value("imageviewer/fit_image", def).toBool();
+  }
+
+  void AppSettings::setViewerFitImage(bool value)
+  {
+    settings.setValue("imageviewer/fit_image", value);
+  }
+
+  int AppSettings::getViewerSlideshowPause(int def) const
+  {
+    return settings.value("imageviewer/slideshow_pause", def).toInt();
+  }
+
+  void AppSettings::setViewerSlideshowPause(int value)
+  {
+    settings.setValue("imageviewer/slideshow_pause", value);
   }
 
   bool AppSettings::getThreadOverviewVisible(bool def) const
@@ -388,6 +618,11 @@ namespace chandl {
   bool AppSettings::getResumeSession(bool def) const
   {
     return settings.value("options/resume_session", def).toBool();
+  }
+
+  void AppSettings::setResumeSession(bool value)
+  {
+    settings.setValue("options/resume_session", value);
   }
 
   bool AppSettings::getCloseToTray(bool def) const
